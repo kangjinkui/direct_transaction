@@ -1,13 +1,15 @@
 class PaymentService
   Result = Struct.new(:status, :order, :payment, :error, keyword_init: true)
 
-  def initialize(order)
+  def initialize(order, actor: nil)
     @order = order
+    @actor = actor
   end
 
   # 기록된 입금 내역을 pending 상태로 저장하고 주문을 payment_pending으로 전이
   def report_transfer(amount:, reference: nil, admin_note: nil)
     Order.transaction do
+      order.status_changed_by = actor if actor
       order.await_payment! if order.may_await_payment?
       payment = upsert_payment!(
         amount:,
@@ -25,6 +27,7 @@ class PaymentService
   # 관리자가 입금 확인을 완료하고 주문을 completed로 전이
   def verify!(verified_at: Time.current, admin_note: nil)
     Order.transaction do
+      order.status_changed_by = actor if actor
       order.await_payment! if order.may_await_payment?
       return Result.new(status: :invalid_transition, order:, error: :cannot_complete) unless order.may_complete_order?
 
@@ -42,7 +45,7 @@ class PaymentService
 
   private
 
-  attr_reader :order
+  attr_reader :order, :actor
 
   def upsert_payment!(attributes)
     payment = order.payment || order.build_payment

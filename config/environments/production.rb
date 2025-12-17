@@ -30,6 +30,18 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+  # Use Redis for cache and sessions in production (configured via ENV).
+  if ENV["REDIS_URL"].present?
+    config.cache_store = :redis_cache_store, { url: ENV["REDIS_URL"], error_handler: ->(method:, returning:, exception:) {
+      Rails.logger.warn("Redis cache error: #{method} -> #{exception.class}: #{exception.message}")
+    } }
+  end
+
+  # Log to stdout with tagging; target P95 monitoring via log aggregation.
+  config.log_tags = [:request_id]
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.logger = ActiveSupport::TaggedLogging.logger(Logger.new($stdout))
+
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 

@@ -1,6 +1,8 @@
 class Order < ApplicationRecord
   include AASM
 
+  attr_accessor :status_changed_by
+
   belongs_to :user
   belongs_to :farmer
   has_many :order_items, dependent: :destroy
@@ -27,7 +29,7 @@ class Order < ApplicationRecord
 
   before_validation :assign_order_number, on: :create
   before_validation :assign_timeout_at, on: :create
-  before_update :append_status_history, if: :will_save_change_to_status?
+  before_update :record_status_change, if: :will_save_change_to_status?
 
   scope :recent, -> { order(created_at: :desc) }
 
@@ -83,12 +85,21 @@ class Order < ApplicationRecord
     self.timeout_at ||= 24.hours.from_now
   end
 
-  def append_status_history
+  def record_status_change
     self.status_history ||= []
+    event_time = Time.current
+    actor = status_changed_by
+
     status_history << {
       status: status,
-      at: Time.current
+      at: event_time,
+      by_id: actor&.id,
+      by_type: actor&.class&.name
     }
+
+    self.last_status_changed_at = event_time
+    self.last_status_changed_by_id = actor&.id
+    self.last_status_changed_by_type = actor&.class&.name
   end
 
   def mark_cancelled_at

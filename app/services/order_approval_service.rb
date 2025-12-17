@@ -9,6 +9,7 @@ class OrderApprovalService
 
   def generate_token(purpose: "farmer_approval")
     Order.transaction do
+      order.status_changed_by = order.farmer
       order.submit_for_review! if order.may_submit_for_review?
       token = order.order_approval_tokens.create!(
         token: SecureRandom.hex(16),
@@ -21,6 +22,7 @@ class OrderApprovalService
 
   def approve(token:)
     process_with_token(token) do
+      order.status_changed_by = order.farmer
       confirm_with_stock!
       :approved
     end
@@ -28,6 +30,7 @@ class OrderApprovalService
 
   def reject(token:)
     process_with_token(token) do
+      order.status_changed_by = order.farmer
       order.reject_order! if order.may_reject_order?
       :rejected
     end
@@ -64,6 +67,7 @@ class OrderApprovalService
 
   def confirm_with_stock!
     Order.transaction do
+      order.status_changed_by = order.farmer
       if stock_sufficient?
         deduct_stock!
         order.submit_for_review! if order.may_submit_for_review?

@@ -1,4 +1,5 @@
 require "rails_helper"
+require "csv"
 
 RSpec.describe "Admin::Orders", type: :request do
   let(:admin) { create(:user, :admin, last_otp_verified_at: Time.current) }
@@ -61,6 +62,30 @@ RSpec.describe "Admin::Orders", type: :request do
       expect(timed_out_entry["timed_out"]).to be(true)
       expect(imminent_entry["imminent"]).to be(true)
       expect(json["stats"]["timed_out"]).to be >= 1
+    end
+
+    it "shows alert banner when timed_out exists" do
+      create(:order, status: :farmer_review, timeout_at: 1.hour.ago)
+      sign_in admin, scope: :user
+
+      get admin_orders_path
+
+      expect(response.body).to include("타임아웃된 주문")
+    end
+
+    it "exports CSV scoped to farmer_review by default" do
+      in_scope = create(:order, status: :farmer_review, order_number: "ORD-IN-SCOPE")
+      out_scope = create(:order, status: :payment_pending, order_number: "ORD-OUT-SCOPE")
+      sign_in admin, scope: :user
+
+      get admin_orders_path(format: :csv)
+
+      expect(response).to have_http_status(:ok)
+      csv = CSV.parse(response.body, headers: true)
+      expect(csv.headers).to include("order_number", "status", "farmer_name")
+      order_numbers = csv.map { |row| row["order_number"] }
+      expect(order_numbers).to include(in_scope.order_number)
+      expect(order_numbers).not_to include(out_scope.order_number)
     end
 
     it "rejects non-admin" do

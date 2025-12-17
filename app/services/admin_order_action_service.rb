@@ -1,12 +1,14 @@
 class AdminOrderActionService
   Result = Struct.new(:status, :order, :error, keyword_init: true)
 
-  def initialize(order)
+  def initialize(order, actor: nil)
     @order = order
+    @actor = actor
   end
 
   def confirm_with_stock!
     Order.transaction do
+      order.status_changed_by = actor if actor
       ensure_review_state!
       deduct_stock!
       order.confirm_order!
@@ -21,6 +23,7 @@ class AdminOrderActionService
 
   def cancel!
     Order.transaction do
+      order.status_changed_by = actor if actor
       return Result.new(status: :invalid_transition, order:, error: :cannot_cancel) unless order.may_cancel_order?
 
       order.cancel_order!
@@ -33,7 +36,7 @@ class AdminOrderActionService
 
   private
 
-  attr_reader :order
+  attr_reader :order, :actor
 
   def ensure_review_state!
     order.submit_for_review! if order.may_submit_for_review?

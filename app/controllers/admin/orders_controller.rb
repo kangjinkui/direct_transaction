@@ -1,3 +1,5 @@
+require "csv"
+
 module Admin
   class OrdersController < ApplicationController
     before_action :require_admin!
@@ -26,16 +28,21 @@ module Admin
             data: @orders.map { |order| order_json(order, now:) }
           }
         end
+        format.csv do
+          send_data orders_csv(@orders),
+                    filename: "orders-#{now.strftime('%Y%m%d')}.csv",
+                    type: "text/csv"
+        end
       end
     end
 
     def confirm
-      result = AdminOrderActionService.new(@order).confirm_with_stock!
+      result = AdminOrderActionService.new(@order, actor: current_user).confirm_with_stock!
       respond_to_action(result, success_message: "주문을 확인했습니다.")
     end
 
     def cancel
-      result = AdminOrderActionService.new(@order).cancel!
+      result = AdminOrderActionService.new(@order, actor: current_user).cancel!
       respond_to_action(result, success_message: "주문을 취소했습니다.")
     end
 
@@ -102,6 +109,24 @@ module Admin
         amount_today: orders_today.sum(:total_amount),
         completed_today: orders_today.where(status: :completed).count
       }
+    end
+
+    def orders_csv(orders)
+      headers = %w[order_number status farmer_name user_name total_amount timeout_at payment_status]
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+        orders.each do |order|
+          csv << [
+            order.order_number,
+            order.status,
+            order.farmer&.business_name,
+            order.user&.name,
+            order.total_amount,
+            order.timeout_at,
+            order.payment&.status
+          ]
+        end
+      end
     end
   end
 end

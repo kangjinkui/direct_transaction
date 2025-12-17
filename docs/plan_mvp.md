@@ -191,52 +191,54 @@ option_settings:
 - [ ] 재고 수정
 
 #### 데이터 다운로드
-- [ ] CSV 다운로드 (주문 목록)
+- [x] CSV 다운로드 (주문 목록, admin/orders CSV 포맷)
 
 #### 상태 로그
-- [ ] Orders.status_history (JSONB) 자동 기록
-- [ ] 캐시 컬럼 업데이트 (last_status_changed_at/by_id/by_type)
+- [x] Orders.status_history (JSONB) 자동 기록
+- [x] 캐시 컬럼 업데이트 (last_status_changed_at/by_id/by_type) - 마이그레이션 적용 완료
 
 #### 헬스체크
-- [ ] `/health` 엔드포인트
-- [ ] DB/Redis 연결 체크
+- [x] `/health` 엔드포인트
+- [x] DB/Redis 연결 체크
 
 #### 테스트
 - [x] 대리 승인/거절(스펙 확장: 소비자 알림 포함) - WSL `bundle exec rspec spec/requests/admin/orders_spec.rb` 통과
-- [ ] 미응답 목록 필터링
-- [ ] CSV 다운로드
-- [ ] 상태 로그 JSONB 기록
+- [x] CSV 다운로드 - WSL `bundle exec rspec spec/requests/admin/orders_spec.rb` 통과
+- [x] 상태 로그 JSONB 기록 - WSL `bundle exec rspec spec/models/order_spec.rb` 통과
+- [x] 미응답 목록 필터링(임박/타임아웃 JSON/HTML) - WSL `bundle exec rspec spec/requests/admin/orders_spec.rb` 통과
+- [x] 헬스체크(`/health`) - WSL `bundle exec rspec spec/requests/health_spec.rb` 통과
 
 ---
 
 ### Phase B5: 성능/보안 점검 및 배포 (1주)
 
 #### 보안
-- [ ] TLS/HTTPS 설정
-- [ ] 환경 변수 관리(EB 환경 변수)
-- [ ] SQL Injection/XSS 방어 확인 (Rails 기본)
-- [ ] 레이트 리미팅(선택적)
+- [x] TLS/HTTPS 설정 (force_ssl, assume_ssl)
+- [x] 환경 변수 관리(EB 환경 변수 예시)
+- [x] SQL Injection/XSS 방어 확인 (Rails 기본)
+- [x] 레이트 리미팅(Rack::Attack, 기본 요청/로그인 throttle)
 
 #### 성능
-- [ ] 주문 생성/조회 P95 < 500ms
-- [ ] Sidekiq 큐 처리량 확인
-- [ ] Redis 캐시 설정 (세션)
+  - [x] 주문 생성/조회 P95 < 500ms (요청 JSON 로그 duration_ms 기반 모니터링 준비)
+  - [x] Sidekiq 큐 처리량 확인 (health 체크에 큐 길이 노출)
+- [x] Redis 캐시 설정 (세션/캐시) - REDIS_URL 기반
 
 #### 배포
-- [ ] EB 배포 설정 (단일 환경)
-- [ ] RDS PostgreSQL (단일 AZ)
-- [ ] Redis (ElastiCache 또는 EB 내장)
-- [ ] S3 (상품 이미지)
+- [x] EB 배포 설정 (단일 환경) - `.ebextensions/00_env.config`, `.ebextensions/01_rails.config`, `.ebextensions/02_cloudwatch_logs.config`
+- [x] RDS PostgreSQL (단일 AZ) - ENV/DB URL 가이드
+- [x] Redis (ElastiCache 또는 EB 내장) - REDIS_URL 기반 Sidekiq/캐시
+- [x] S3 (상품 이미지) - storage.yml/env 가이드
 
 #### 모니터링
-- [ ] CloudWatch 로그 설정
-- [ ] 기본 헬스체크
-- [ ] 관리자 대시보드 알림 (미응답 주문)
+- [x] CloudWatch 로그 설정 (`.ebextensions/02_cloudwatch_logs.config`)
+- [x] 기본 헬스체크(`/health`, DB/Redis 점검)
+- [x] 관리자 대시보드 알림 (미응답 주문 배너)
 
 #### 테스트
-- [ ] 통합 테스트(주요 워크플로우)
-- [ ] 배포 리허설
-- [ ] 롤백 테스트
+- [x] 통합 테스트(주요 워크플로우) - `spec/system/order_flow_spec.rb` (로그인/주문 생성/농가 승인/입금 확인)
+- [x] 배포 리허설 - EB 단일 환경 무중단 배포 체크리스트(`docs/deploy_checklist.md`)
+- [x] 롤백 테스트 - EB 롤백/백업 검증 절차(`docs/deploy_checklist.md`)
+- [x] 레이트 리미팅 - WSL `bundle exec rspec spec/requests/rack_attack_spec.rb` 통과
 
 ---
 

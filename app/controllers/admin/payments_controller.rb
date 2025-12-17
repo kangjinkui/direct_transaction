@@ -14,7 +14,7 @@ module Admin
 
     def verify
       payment = Payment.find(params[:id])
-      result = PaymentService.new(payment.order).verify!(
+      result = PaymentService.new(payment.order, actor: current_user).verify!(
         verified_at: Time.current,
         admin_note: params[:admin_note]
       )

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_19_074741) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_17_080000) do
   create_table "admin_otp_challenges", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "code", null: false
@@ -112,7 +112,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_19_074741) do
     t.datetime "updated_at", null: false
     t.json "status_history", default: [], null: false
     t.datetime "timeout_at"
+    t.datetime "last_status_changed_at"
+    t.bigint "last_status_changed_by_id"
+    t.string "last_status_changed_by_type"
     t.index ["farmer_id"], name: "index_orders_on_farmer_id"
+    t.index ["last_status_changed_by_type", "last_status_changed_by_id"], name: "index_orders_on_last_status_changed_by"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
     t.index ["status"], name: "index_orders_on_status"
     t.index ["timeout_at"], name: "index_orders_on_timeout_at"

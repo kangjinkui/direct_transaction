@@ -1,5 +1,15 @@
 <h1 class="text-xl font-bold mb-4">관리자 대시보드</h1>
 
+<% if @stats[:timed_out].positive? %>
+  <div class="mb-3 p-3 bg-red-50 border border-red-200 text-red-800 rounded">
+    타임아웃된 주문 <strong><%= @stats[:timed_out] %>건</strong>이 있습니다. 확인이 필요합니다.
+  </div>
+<% elsif @imminent_only %>
+  <div class="mb-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded">
+    타임아웃 임박 주문만 필터링 중입니다.
+  </div>
+<% end %>
+
 <div class="grid grid-cols-3 gap-3 mb-4">
   <div class="p-3 bg-gray-50 border rounded">
     <div class="text-sm text-gray-600">오늘 생성된 주문</div>
