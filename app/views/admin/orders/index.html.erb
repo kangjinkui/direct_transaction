@@ -1,0 +1,65 @@
+<h1 class="text-xl font-bold mb-4">관리자 대시보드</h1>
+
+<div class="grid grid-cols-3 gap-3 mb-4">
+  <div class="p-3 bg-gray-50 border rounded">
+    <div class="text-sm text-gray-600">오늘 생성된 주문</div>
+    <div class="text-lg font-bold"><%= @summary[:orders_today] %>건</div>
+  </div>
+  <div class="p-3 bg-gray-50 border rounded">
+    <div class="text-sm text-gray-600">오늘 주문 금액 합계</div>
+    <div class="text-lg font-bold"><%= number_to_currency(@summary[:amount_today], unit: "₩", precision: 0) %></div>
+  </div>
+  <div class="p-3 bg-gray-50 border rounded">
+    <div class="text-sm text-gray-600">오늘 완료</div>
+    <div class="text-lg font-bold"><%= @summary[:completed_today] %>건</div>
+  </div>
+</div>
+
+<div class="mb-3 flex gap-2 items-center">
+  <%= link_to "미응답 주문 (#{@stats[:farmer_review]})", admin_orders_path(scope: :farmer_review), class: "px-3 py-1 rounded #{params[:scope].to_s == 'payment_pending' ? 'bg-gray-200' : 'bg-blue-600 text-white'}" %>
+  <%= link_to "입금 대기 (#{@stats[:payment_pending]})", admin_orders_path(scope: :payment_pending), class: "px-3 py-1 rounded #{params[:scope].to_s == 'payment_pending' ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+  <%= link_to "타임아웃 임박", admin_orders_path(scope: @scope, imminent: true), class: "px-3 py-1 rounded #{params[:imminent] ? 'bg-amber-500 text-white' : 'bg-gray-200'}" %>
+  <span class="text-sm text-red-600">타임아웃 경과: <%= @stats[:timed_out] %>건</span>
+</div>
+
+<% if @orders.empty? %>
+  <p>표시할 항목이 없습니다.</p>
+<% else %>
+  <table class="min-w-full border border-gray-200 text-sm">
+    <thead>
+      <tr class="bg-gray-50">
+        <th class="border px-3 py-2 text-left">주문번호</th>
+        <th class="border px-3 py-2 text-left">상태</th>
+        <th class="border px-3 py-2 text-left">농가</th>
+        <th class="border px-3 py-2 text-left">고객</th>
+        <th class="border px-3 py-2 text-left">
+          <%= link_to "타임아웃", admin_orders_path(scope: @scope, sort: :timeout_at, imminent: params[:imminent]), class: "underline" %>
+        </th>
+        <th class="border px-3 py-2 text-left">입금 상태</th>
+        <th class="border px-3 py-2 text-left">액션</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @orders.each do |order| %>
+        <% timed_out = order.timeout_at && order.timeout_at <= @now %>
+        <% imminent = !timed_out && order.timeout_at && order.timeout_at <= @now + 2.hours %>
+        <tr class="<%= timed_out ? 'bg-red-50' : imminent ? 'bg-amber-50' : '' %>">
+          <td class="border px-3 py-2"><%= order.order_number %></td>
+          <td class="border px-3 py-2"><%= order.status %></td>
+          <td class="border px-3 py-2"><%= order.farmer.business_name %></td>
+          <td class="border px-3 py-2"><%= order.user.name %></td>
+          <td class="border px-3 py-2"><%= order.timeout_at ? l(order.timeout_at, format: :short) : "-" %></td>
+          <td class="border px-3 py-2"><%= order.payment&.status || "-" %></td>
+          <td class="border px-3 py-2 space-x-2">
+            <% if order.may_confirm_order? || order.may_submit_for_review? %>
+              <%= button_to "대리 승인", confirm_admin_order_path(order, scope: @scope), method: :post, class: "bg-blue-600 text-white px-3 py-1 rounded" %>
+            <% end %>
+            <% if order.may_cancel_order? %>
+              <%= button_to "대리 취소", cancel_admin_order_path(order, scope: @scope), method: :post, form: { data: { turbo_confirm: "정말 취소할까요?" } }, class: "bg-red-600 text-white px-3 py-1 rounded" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

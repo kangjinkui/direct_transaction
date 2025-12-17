@@ -1,0 +1,18 @@
+<section class="max-w-md mx-auto py-10 space-y-4">
+  <h1 class="text-2xl font-bold text-center">관리자 OTP 인증</h1>
+  <p class="text-center text-slate-600">등록된 번호로 전송된 6자리 코드를 입력하세요.</p>
+
+  <%= form_with url: admin_otp_path, method: :post, local: true, class: "space-y-3" do |f| %>
+    <div>
+      <%= f.label :code, "OTP 코드", class: "block text-sm font-medium text-slate-700" %>
+      <%= f.text_field :code, class: "mt-1 w-full rounded border px-3 py-2", autocomplete: "one-time-code", inputmode: "numeric", maxlength: 6 %>
+    </div>
+    <div class="text-center">
+      <%= f.submit "확인", class: "btn-primary inline-block px-4 py-2 rounded bg-green-600 text-white" %>
+    </div>
+  <% end %>
+
+  <% if Rails.env.test? && @challenge.present? %>
+    <p class="text-center text-xs text-slate-400">테스트 코드: <%= @challenge.code %></p>
+  <% end %>
+</section>

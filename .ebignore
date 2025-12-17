@@ -1,0 +1,13 @@
+.git/
+.github/
+.bundle/
+log/*
+tmp/*
+storage/*
+node_modules/
+coverage/
+spec/
+test/
+docker-compose.yml
+config/master.key
+.env

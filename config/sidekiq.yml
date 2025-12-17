@@ -1,0 +1,15 @@
+:concurrency: 5
+:queues:
+  - critical
+  - default
+
+:schedule:
+  order_timeout_worker:
+    cron: "*/5 * * * *"
+    class: "OrderTimeoutWorker"
+  daily_summary_worker:
+    cron: "0 18 * * *"
+    class: "DailySummaryWorker"
+  payment_timeout_worker:
+    cron: "*/10 * * * *"
+    class: "PaymentTimeoutWorker"

@@ -1,0 +1,32 @@
+<h1 class="text-xl font-bold mb-4">입금 대기 목록</h1>
+
+<% if @payments.empty? %>
+  <p>입금 대기 중인 항목이 없습니다.</p>
+<% else %>
+  <table class="min-w-full border border-gray-200 text-sm">
+    <thead>
+      <tr class="bg-gray-50">
+        <th class="border px-3 py-2 text-left">주문번호</th>
+        <th class="border px-3 py-2 text-left">금액</th>
+        <th class="border px-3 py-2 text-left">상태</th>
+        <th class="border px-3 py-2 text-left">주문 상태</th>
+        <th class="border px-3 py-2 text-left">참고</th>
+        <th class="border px-3 py-2 text-left">액션</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @payments.each do |payment| %>
+        <tr>
+          <td class="border px-3 py-2"><%= payment.order.order_number %></td>
+          <td class="border px-3 py-2"><%= number_to_currency(payment.amount, unit: "₩", precision: 0) %></td>
+          <td class="border px-3 py-2"><%= payment.status %></td>
+          <td class="border px-3 py-2"><%= payment.order.status %></td>
+          <td class="border px-3 py-2"><%= payment.reference || "-" %></td>
+          <td class="border px-3 py-2">
+            <%= button_to "입금 확인", verify_admin_payment_path(payment), method: :post, class: "bg-green-600 text-white px-3 py-1 rounded" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
