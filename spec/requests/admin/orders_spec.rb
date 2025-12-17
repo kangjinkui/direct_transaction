@@ -48,6 +48,21 @@ RSpec.describe "Admin::Orders", type: :request do
       expect(json["data"].first["order_number"]).to eq(order.order_number)
     end
 
+    it "marks timed_out and imminent orders in json" do
+      timed_out = create(:order, status: :farmer_review, timeout_at: 1.hour.ago)
+      imminent = create(:order, status: :farmer_review, timeout_at: 30.minutes.from_now)
+      sign_in admin, scope: :user
+
+      get admin_orders_path(format: :json)
+
+      json = JSON.parse(response.body)
+      timed_out_entry = json["data"].find { |o| o["order_number"] == timed_out.order_number }
+      imminent_entry = json["data"].find { |o| o["order_number"] == imminent.order_number }
+      expect(timed_out_entry["timed_out"]).to be(true)
+      expect(imminent_entry["imminent"]).to be(true)
+      expect(json["stats"]["timed_out"]).to be >= 1
+    end
+
     it "rejects non-admin" do
       sign_in user, scope: :user
 
