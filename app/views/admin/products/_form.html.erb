@@ -1,0 +1,76 @@
+<%= form_with(model: [:admin, product], local: true, class: "space-y-4 bg-white border border-gray-200 rounded p-4") do |f| %>
+  <% if product.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded">
+      <p class="font-semibold mb-1">저장 중 오류가 발생했습니다:</p>
+      <ul class="list-disc list-inside text-sm">
+        <% product.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :farmer_id, "농가", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.select :farmer_id,
+                 @farmer_options,
+                 { prompt: "농가 선택" },
+                 class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :name, "상품명", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_field :name, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :description, "설명", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_area :description, rows: 3, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :price, "가격", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.number_field :price, step: 100, class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+    <div>
+      <%= f.label :category, "카테고리", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :category, class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :stock_quantity, "재고 수량", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.number_field :stock_quantity, class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+    <div>
+      <%= f.label :stock_status, "재고 상태", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :stock_status,
+                   Product.stock_statuses.keys.map { |status| [status.humanize, status] },
+                   {},
+                   class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :max_per_order, "1회 최대 주문수량", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.number_field :max_per_order, class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+    <div>
+      <%= f.label :sku, "SKU", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_field :sku, class: "mt-1 w-full border rounded px-3 py-2" %>
+      <p class="text-xs text-gray-500 mt-1">비우면 자동으로 생성됩니다.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center space-x-2">
+    <%= f.check_box :is_available, class: "rounded border-gray-300" %>
+    <%= f.label :is_available, "판매 가능", class: "text-sm font-medium text-gray-700" %>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit class: "bg-blue-600 text-white px-4 py-2 rounded" %>
+  </div>
+<% end %>

@@ -1,0 +1,71 @@
+<%= form_with(model: [:admin, farmer], local: true, class: "space-y-4 bg-white border border-gray-200 rounded p-4") do |f| %>
+  <% if farmer.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded">
+      <p class="font-semibold mb-1">저장할 수 없습니다:</p>
+      <ul class="list-disc list-inside text-sm">
+        <% farmer.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :business_name, "상호", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_field :business_name, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :owner_name, "대표자", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_field :owner_name, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :phone, "연락처", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_field :phone, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <%= f.label :farmer_type, "농가 유형", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :farmer_type,
+                   Farmer.farmer_types.keys.map { |key| [key.humanize, key] },
+                   {},
+                   class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+    <div>
+      <%= f.label :notification_method, "알림 방식", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :notification_method,
+                   Farmer.notification_methods.keys.map { |key| [key.humanize, key] },
+                   {},
+                   class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+    <div>
+      <%= f.label :approval_mode, "승인 방식", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.select :approval_mode,
+                   Farmer.approval_modes.keys.map { |key| [key.humanize, key] },
+                   {},
+                   class: "mt-1 w-full border rounded px-3 py-2" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :stock_quantity, "현재 재고", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.number_field :stock_quantity, class: "mt-1 w-full border rounded px-3 py-2" %>
+  </div>
+
+  <div>
+    <%= f.label :account_info, "계좌 정보", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.text_area :account_info, rows: 3, class: "mt-1 w-full border rounded px-3 py-2 font-mono text-sm" %>
+  </div>
+
+  <div>
+    <%= f.label :pin, "승인 PIN (선택)", class: "block text-sm font-medium text-gray-700" %>
+    <%= f.password_field :pin, class: "mt-1 w-full border rounded px-3 py-2" %>
+    <p class="text-xs text-gray-500 mt-1">입력 시 새로운 PIN으로 갱신됩니다.</p>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit class: "bg-blue-600 text-white px-4 py-2 rounded" %>
+  </div>
+<% end %>

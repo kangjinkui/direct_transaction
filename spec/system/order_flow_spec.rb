@@ -34,7 +34,7 @@ RSpec.describe "Order flow", type: :system do
     # Admin verifies payment
     login_as(admin, scope: :user)
     payment = PaymentService.new(order).report_transfer(amount: order.total_amount, reference: "TEST-REF").payment
-    result = PaymentService.new(order).verify!(verified_at: Time.current, admin_note: "Test")
+    result = PaymentService.new(order).verify!(verified_at: Time.current, admin_note: "Test", verification_method: :phone_call)
     expect(result.status).to eq(:completed)
     expect(order.reload.status).to eq("completed")
     expect(payment.reload.status).to eq("verified")

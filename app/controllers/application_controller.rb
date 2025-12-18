@@ -6,9 +6,10 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :require_admin_otp!
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :log_request_metadata
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  allow_browser versions: :modern unless Rails.env.test?
 
   rescue_from Pundit::NotAuthorizedError do
     redirect_to(request.referer || root_path, alert: "접근 권한이 없습니다.")
@@ -41,5 +42,11 @@ class ApplicationController < ActionController::Base
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: %i[name phone address role])
     devise_parameter_sanitizer.permit(:account_update, keys: %i[name phone address role])
+  end
+
+  private
+
+  def log_request_metadata
+    request.env["request_start_time"] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 end

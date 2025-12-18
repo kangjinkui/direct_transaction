@@ -14,9 +14,22 @@ module Admin
 
     def verify
       payment = Payment.find(params[:id])
+      verification_method = payment_params[:verification_method]
+      admin_note = payment_params[:admin_note]
+      unless verification_method.present?
+        respond_to do |format|
+          format.html do
+            redirect_to admin_payments_path, alert: "확인 수단을 선택해 주세요."
+          end
+          format.json { render json: { error: :verification_method_required }, status: :unprocessable_entity }
+        end
+        return
+      end
+
       result = PaymentService.new(payment.order, actor: current_user).verify!(
         verified_at: Time.current,
-        admin_note: params[:admin_note]
+        admin_note:,
+        verification_method:
       )
 
       respond_to do |format|
@@ -60,6 +73,10 @@ module Admin
         order_number: payment.order.order_number,
         order_status: payment.order.status
       }
+    end
+
+    def payment_params
+      params.fetch(:payment, {}).permit(:admin_note, :verification_method)
     end
   end
 end

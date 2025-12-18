@@ -30,6 +30,7 @@ class Order < ApplicationRecord
   before_validation :assign_order_number, on: :create
   before_validation :assign_timeout_at, on: :create
   before_update :record_status_change, if: :will_save_change_to_status?
+  after_commit :enqueue_auto_processing, on: :create
 
   scope :recent, -> { order(created_at: :desc) }
 
@@ -104,5 +105,13 @@ class Order < ApplicationRecord
 
   def mark_cancelled_at
     self.cancelled_at ||= Time.current
+  end
+
+  def enqueue_auto_processing
+    return unless farmer&.approval_mode == "auto"
+
+    OrderAutoProcessWorker.perform_async(id)
+  rescue StandardError => e
+    Rails.logger.warn("[Order] Failed to enqueue auto processing for order #{id}: #{e.message}")
   end
 end

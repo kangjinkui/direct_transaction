@@ -25,7 +25,9 @@ class PaymentService
   end
 
   # 관리자가 입금 확인을 완료하고 주문을 completed로 전이
-  def verify!(verified_at: Time.current, admin_note: nil)
+  def verify!(verified_at: Time.current, admin_note: nil, verification_method: nil)
+    raise ArgumentError, "verification_method required" if verification_method.blank?
+
     Order.transaction do
       order.status_changed_by = actor if actor
       order.await_payment! if order.may_await_payment?
@@ -34,7 +36,8 @@ class PaymentService
       payment = upsert_payment!(
         status: :verified,
         verified_at:,
-        admin_note:
+        admin_note:,
+        verification_method:
       )
       order.complete_order!
       Result.new(status: :completed, order:, payment:)

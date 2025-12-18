@@ -3,8 +3,7 @@ FactoryBot.define do
     business_name { "#{Faker::Address.city} 농장" }
     owner_name { Faker::Name.name }
     sequence(:phone) { |n| "+8210#{format('%08d', n)}" }
-    account_info_enc { "enc-#{SecureRandom.hex(8)}" }
-    encrypted_account_info { "enc-#{SecureRandom.hex(6)}" }
+    account_info { "농협 110-#{SecureRandom.hex(3)}-#{SecureRandom.hex(3)} 홍길동" }
     farmer_type { :type_a }
     approval_mode { :manual }
     notification_method { :kakao }

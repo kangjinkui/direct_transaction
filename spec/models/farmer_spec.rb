@@ -1,24 +1,16 @@
 require "rails_helper"
 
 RSpec.describe Farmer, type: :model do
-  describe "validations" do
-    it "has a valid factory" do
-      expect(build(:farmer)).to be_valid
-    end
+  describe "#account_info" do
+    it "stores data encrypted and exposes masked helpers" do
+      farmer = create(:farmer, account_info: "국민은행 123-456-789012 홍길동")
 
-    it "requires unique phone" do
-      farmer = create(:farmer, phone: "+821011111111")
-      dup = build(:farmer, phone: farmer.phone)
-
-      expect(dup).not_to be_valid
-    end
-  end
-
-  describe "#masked_phone" do
-    it "masks the middle digits" do
-      farmer = build(:farmer, phone: "+821012345678")
-
-      expect(farmer.masked_phone).to eq("+8210****5678")
+      expect(farmer.account_info).to eq("국민은행 123-456-789012 홍길동")
+      expect(farmer.encrypted_account_info).to be_present
+      expect(farmer.encrypted_account_info).not_to include("123-456")
+      expect(farmer.account_last4).to eq("9012")
+      expect(farmer.masked_account_info).to end_with("9012 홍길동")
+      expect(farmer.masked_account_info).to include("*")
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_17_080000) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_18_000100) do
   create_table "admin_otp_challenges", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "code", null: false
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_17_080000) do
     t.string "approval_mode", default: "manual", null: false
     t.integer "stock_quantity", default: 0, null: false
     t.text "encrypted_account_info", default: "", null: false
+    t.string "encrypted_account_info_iv", default: "", null: false
     t.index ["approval_mode"], name: "index_farmers_on_approval_mode"
     t.index ["farmer_type"], name: "index_farmers_on_farmer_type"
     t.index ["phone"], name: "index_farmers_on_phone", unique: true
@@ -135,6 +136,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_17_080000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "admin_note"
+    t.string "verification_method"
     t.index ["order_id"], name: "index_payments_on_order_id"
     t.index ["reference"], name: "index_payments_on_reference"
     t.index ["status"], name: "index_payments_on_status"

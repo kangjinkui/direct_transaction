@@ -4,6 +4,17 @@ Rails.application.routes.draw do
   }
 
   namespace :admin do
+    resource :dashboard, only: :show
+    resources :farmers do
+      member do
+        get :account_info
+      end
+    end
+    resources :products do
+      member do
+        patch :update_stock
+      end
+    end
     resources :payments, only: [:index] do
       post :verify, on: :member
     end

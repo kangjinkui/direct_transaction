@@ -11,6 +11,7 @@
         <th class="border px-3 py-2 text-left">상태</th>
         <th class="border px-3 py-2 text-left">주문 상태</th>
         <th class="border px-3 py-2 text-left">참고</th>
+        <th class="border px-3 py-2 text-left">계좌 정보</th>
         <th class="border px-3 py-2 text-left">액션</th>
       </tr>
     </thead>
@@ -22,11 +23,29 @@
           <td class="border px-3 py-2"><%= payment.status %></td>
           <td class="border px-3 py-2"><%= payment.order.status %></td>
           <td class="border px-3 py-2"><%= payment.reference || "-" %></td>
+          <td class="border px-3 py-2 space-y-1">
+            <div class="text-sm"><%= payment.order.farmer.masked_account_info.presence || "-" %></div>
+            <%= link_to "전체 보기",
+                        account_info_admin_farmer_path(payment.order.farmer),
+                        data: { turbo_frame: "account_info_modal" },
+                        class: "inline-flex items-center text-xs text-blue-600 hover:underline" %>
+          </td>
           <td class="border px-3 py-2">
-            <%= button_to "입금 확인", verify_admin_payment_path(payment), method: :post, class: "bg-green-600 text-white px-3 py-1 rounded" %>
+            <%= form_with url: verify_admin_payment_path(payment), method: :post, local: true, class: "flex flex-col gap-2 md:flex-row md:items-center" do |f| %>
+              <%= f.select :verification_method,
+                           options_for_select([["전화 확인", :phone_call], ["문자 확인", :sms]]),
+                           { prompt: "확인 수단" },
+                           class: "border rounded px-2 py-1 text-sm" %>
+              <%= f.text_field :admin_note,
+                               placeholder: "예: 1/15 전화 확인",
+                               class: "border rounded px-2 py-1 text-sm flex-1" %>
+              <%= f.submit "입금 확인", class: "bg-green-600 text-white px-3 py-1 rounded text-sm" %>
+            <% end %>
           </td>
         </tr>
       <% end %>
     </tbody>
   </table>
 <% end %>
+
+<turbo-frame id="account_info_modal"></turbo-frame>

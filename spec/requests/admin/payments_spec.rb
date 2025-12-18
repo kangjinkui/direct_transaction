@@ -14,20 +14,31 @@ RSpec.describe "Admin::Payments", type: :request do
     end
 
     it "verifies payment and completes order as admin" do
-      sign_in admin
+      sign_in admin, scope: :user
 
-      post verify_admin_payment_path(payment), params: { admin_note: "입금 확인" }
+      post verify_admin_payment_path(payment), params: { payment: { admin_note: "입금 확인", verification_method: :phone_call } }
 
       expect(response).to redirect_to(admin_payments_path)
       expect(payment.reload.status).to eq("verified")
       expect(payment.admin_note).to eq("입금 확인")
+      expect(payment.verification_method).to eq("phone_call")
       expect(order.reload.status).to eq("completed")
     end
 
-    it "rejects non-admins" do
-      sign_in user
+    it "rejects verification without method" do
+      sign_in admin, scope: :user
 
-      post verify_admin_payment_path(payment), params: { admin_note: "입금 확인" }
+      post verify_admin_payment_path(payment), params: { payment: { admin_note: "입금 확인" } }
+
+      expect(response).to redirect_to(admin_payments_path)
+      expect(flash[:alert]).to be_present
+      expect(payment.reload).to be_pending
+    end
+
+    it "rejects non-admins" do
+      sign_in user, scope: :user
+
+      post verify_admin_payment_path(payment), params: { payment: { admin_note: "입금 확인", verification_method: :phone_call } }
 
       expect(response).to have_http_status(:forbidden)
     end
@@ -36,7 +47,7 @@ RSpec.describe "Admin::Payments", type: :request do
   describe "GET /admin/payments" do
     it "renders pending payments for admin" do
       payment
-      sign_in admin
+      sign_in admin, scope: :user
 
       get admin_payments_path
 
@@ -45,7 +56,7 @@ RSpec.describe "Admin::Payments", type: :request do
     end
 
     it "forbids non-admin" do
-      sign_in user
+      sign_in user, scope: :user
 
       get admin_payments_path
 

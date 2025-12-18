@@ -20,19 +20,20 @@ RSpec.describe PaymentService, type: :service do
       service = described_class.new(order)
       service.report_transfer(amount: 30_000, reference: "REF123")
 
-      result = service.verify!(verified_at: Time.current, admin_note: "확인 완료")
+      result = service.verify!(verified_at: Time.current, admin_note: "확인 완료", verification_method: :phone_call)
 
       expect(result.status).to eq(:completed)
       expect(order.reload.status).to eq("completed")
       expect(result.payment.status).to eq("verified")
       expect(result.payment.admin_note).to eq("확인 완료")
+      expect(result.payment.verification_method).to eq("phone_call")
       expect(result.payment.verified_at).to be_present
     end
 
     it "returns invalid_transition for wrong order state" do
       pending_order = create(:order, status: :pending)
 
-      result = described_class.new(pending_order).verify!
+      result = described_class.new(pending_order).verify!(verification_method: :phone_call)
 
       expect(result.status).to eq(:invalid_transition)
     end

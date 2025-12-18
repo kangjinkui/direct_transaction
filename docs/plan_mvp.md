@@ -8,7 +8,7 @@
 
 ### 보안 (간소화)
 - TLS/HTTPS 전 구간
-- 계좌 정보 암호화 (attr_encrypted)
+- 계좌 정보 암호화 (Active Record encrypts)
 - 관리자 MFA: 주 1회 SMS OTP (행사 중 매번)
 - 농가 토큰: 30분 만료, 1회성 (재사용 차단)
 
@@ -116,8 +116,30 @@ option_settings:
 - 관리자 SMS OTP 확장(옵션): admin/staff가 `last_otp_verified_at`가 7일 초과 시 6자리 OTP(5분만료) 재인증 발송, 채널 SMS 기본, 카카오 실패 시 Fallback. 성공 시 `last_otp_verified_at` 갱신.
 - 구현 TODO: OTP 발송 서비스(SMS/Kakao), OTP 코드 임시 저장 검증(AdminOtpChallenge 모델 또는 Redis), Devise/Warden 후크로 주 1회 강제.
 
+##### OAuth ENV/콜백 등록 진행 순서
+- [ ] **(후순위)** 기본 도메인 확정: STG/PRD `DEFAULT_HOST`, 로컬 개발용 `http://localhost:3000` 모두 정리해 동일한 콜백 경로(`/users/auth/<provider>/callback`)를 사용.
+- [ ] Kakao Developers
+  - [ ] 앱 생성 및 비즈 앱 전환 → Redirect URI 목록에 `https://<DEFAULT_HOST>/users/auth/kakao/callback`, `https://staging.<DEFAULT_HOST>/...`, `http://localhost:3000/...` 등록.
+  - [ ] 플랫폼 > Web 설정 후 JavaScript/Redirect 도메인 일치 여부 확인.
+  - [ ] REST API Key/Client Secret 발급 → `.env.local`, `.env.staging`, `.ebextensions/00_env.config`, GitHub Actions secrets(`KAKAO_CLIENT_ID/SECRET`)에 입력.
+- [ ] Naver Developers
+  - [ ] 애플리케이션 등록(서비스 URL/콜백 URL 동일 경로) → Client ID/Secret 획득.
+  - [ ] 각 환경 ENV, EB 설정, CI secrets에 `NAVER_CLIENT_ID/SECRET` 적용.
+- [ ] 검증
+  - [ ] `bundle exec rails routes | Select-String users/auth`로 콜백 경로 확인.
+  - [ ] 로컬에서 `bin/dev` 실행 후 `/users/sign_in` → Kakao/Naver 버튼 클릭, OAuth Sandbox 계정으로 로그인 플로우 확인.
+  - [ ] EB 배포 체크리스트에 Kakao/Naver 콜백 등록 여부와 ENV 최신 상태 포함.
+
+#### 계좌 암호화 설정
+- ENV: `ACCOUNT_INFO_KEY` (32바이트 base64 또는 hex) - `.env.local`, EB `.ebextensions/00_env.config`, GitHub Actions secrets 모두 동일 값 유지.
+- Fallback: 로컬 개발은 `Rails.application.secret_key_base` 자동 사용.
+- 테스트 커버리지: `Farmer` 모델 스펙으로 암호화/마스킹 보장.
+
 
 ### Phase B2: 주문 플로우 및 알림 (1.5주)
+
+#### Blocked
+- [ ] Kakao/SMS 실연동 어댑터 + ENV 정리 (메시지 사업자 미선정으로 보류)
 
 #### 농가 타입별 승인 로직
 - [x] 타입 A (수동 승인):
@@ -125,9 +147,9 @@ option_settings:
   - [x] 토큰 검증(만료/재사용 차단)
   - [x] 승인/거절 액션
   - [x] 재고 자동 차감 (승인 시)
-- [ ] 타입 B (자동 승인):
-  - [x] 재고 체크 → 자동 confirmed
-  - [x] 재고 소진 시 차단 + 알림 TODO(알림)
+- [x] 타입 B (자동 승인):
+  - [x] 재고 체크 → 자동 confirmed (OrderAutoProcessWorker + OrderApprovalService)
+  - [x] 재고 소진 시 차단 + 알림(`stock_depleted` 알림 → Kakao/SMS Fallback)
   - [x] 일간 요약 SMS (오후 6시)
 
 #### 알림 시스템
@@ -158,18 +180,17 @@ option_settings:
 
 #### 관리자 입금 확인
 - [x] 관리자 입금 확인 UI
-- [ ] 전화/문자 확인 후 수동 승인
+- [x] 전화/문자 확인 후 수동 승인 (verification_method 필수 + UI 입력)
 - [x] 관리자 메모 기록 (admin_note)
 - [x] 주문 상태: payment_pending → completed
 
-#### 계좌 관리
-- [ ] 계좌 정보 암호화(attr_encrypted)
-- [ ] 화면/알림에 뒤 4자리만 노출
-- [ ] 전체 계좌는 인증 후 모달에서만 표시
+- [x] 계좌 정보 암호화(Active Record encrypts + ACCOUNT_INFO_KEY)
+- [x] 화면/알림에 뒤 4자리만 노출 (Farmer#masked_account_info, account_last4)
+- [x] 전체 계좌는 인증 후 모달에서만 표시 (OTP 이후 Turbo modal)
 
 #### 테스트
-- [ ] 입금 신고 → 관리자 확인 → completed
-- [ ] 계좌 마스킹(뒤 4자리)
+- [x] 입금 신고 → 관리자 확인 → completed
+- [x] 계좌 마스킹(뒤 4자리)
 - [x] 미입금 타임아웃 (payment_pending 24h 경과 시 취소)
 
 ---
@@ -177,18 +198,18 @@ option_settings:
 ### Phase B4: 관리자/모니터링 (1주)
 
 #### 관리자 대시보드
-- [ ] 미응답 주문 목록 (farmer_review 상태 + 타임아웃 임박)
-- [ ] 입금 대기 목록 (payment_pending)
-- [ ] 오늘의 통계 (주문 건수/금액)
+- [x] 미응답 주문 목록 (farmer_review 상태 + 타임아웃 임박)
+- [x] 입금 대기 목록 (payment_pending)
+- [x] 오늘의 통계 (주문 건수/금액)
 
 #### 대리 처리
 - [x] 대리 승인/취소 액션 (admin/orders 멤버 액션, AdminOrderActionService, HTML/JSON 응답)
 - [x] 주문 상태 변경 + 소비자 알림(Kakao 기본, SMS fallback)
 
 #### 농가/상품 관리
-- [ ] 농가 CRUD (기본)
-- [ ] 상품 CRUD (기본)
-- [ ] 재고 수정
+- [x] 농가 CRUD (기본)
+- [x] 상품 CRUD (기본)
+- [x] 재고 수정
 
 #### 데이터 다운로드
 - [x] CSV 다운로드 (주문 목록, admin/orders CSV 포맷)

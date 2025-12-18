@@ -31,7 +31,7 @@ farmers = farmer_attrs.map do |attrs|
     farmer.owner_name = attrs[:owner_name]
     farmer.farmer_type = attrs[:farmer_type]
     farmer.notification_method = attrs[:farmer_type] == :type_a ? :kakao : :auto
-    farmer.encrypted_account_info = "enc-account-#{SecureRandom.hex(6)}"
+    farmer.account_info = "국민은행 123-456-789012 김파머"
     farmer.pin = "123456"
     farmer.stock_quantity = 500
   end

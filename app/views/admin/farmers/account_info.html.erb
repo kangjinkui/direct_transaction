@@ -1,0 +1,21 @@
+<turbo-frame id="account_info_modal">
+  <dialog open class="w-full max-w-md rounded border border-gray-200 shadow-lg p-4 bg-white">
+    <div class="space-y-3">
+      <div>
+        <h2 class="text-lg font-semibold mb-1">전체 계좌 정보</h2>
+        <p class="text-sm text-gray-600">관리자 OTP 인증 완료된 사용자에게만 노출됩니다.</p>
+      </div>
+      <div class="bg-gray-50 border border-gray-200 rounded p-3 font-mono text-sm">
+        <%= @farmer.account_info %>
+      </div>
+      <div class="text-sm text-gray-600">
+        마지막 4자리: <strong><%= @farmer.account_last4 %></strong>
+      </div>
+    </div>
+    <form method="dialog" class="text-right mt-4">
+      <button class="inline-flex items-center rounded bg-gray-200 px-3 py-1 text-sm font-medium text-gray-800 hover:bg-gray-300">
+        닫기
+      </button>
+    </form>
+  </dialog>
+</turbo-frame>

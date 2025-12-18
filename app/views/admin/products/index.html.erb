@@ -1,0 +1,59 @@
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-semibold">상품 관리</h1>
+  <%= link_to "상품 추가", new_admin_product_path, class: "bg-blue-600 text-white px-4 py-2 rounded text-sm" %>
+</div>
+
+<% if @products.empty? %>
+  <p class="text-gray-600">등록된 상품이 없습니다.</p>
+<% else %>
+  <table class="min-w-full border border-gray-200 text-sm bg-white">
+    <thead>
+      <tr class="bg-gray-50 text-left">
+        <th class="px-3 py-2 border">상품명</th>
+        <th class="px-3 py-2 border">농가</th>
+        <th class="px-3 py-2 border">가격</th>
+        <th class="px-3 py-2 border">재고</th>
+        <th class="px-3 py-2 border">상태</th>
+        <th class="px-3 py-2 border">판매 여부</th>
+        <th class="px-3 py-2 border">관리</th>
+        <th class="px-3 py-2 border">재고 수정</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @products.each do |product| %>
+        <tr>
+          <td class="px-3 py-2 border font-medium"><%= product.name %></td>
+          <td class="px-3 py-2 border"><%= product.farmer&.business_name || "-" %></td>
+          <td class="px-3 py-2 border"><%= number_to_currency(product.price, unit: "₩", precision: 0) %></td>
+          <td class="px-3 py-2 border"><%= product.stock_quantity %></td>
+          <td class="px-3 py-2 border"><%= product.stock_status %></td>
+          <td class="px-3 py-2 border"><%= product.is_available? ? "판매중" : "중지" %></td>
+          <td class="px-3 py-2 border space-x-2 whitespace-nowrap">
+            <%= link_to "보기", admin_product_path(product), class: "text-blue-600 hover:underline text-sm" %>
+            <%= link_to "수정", edit_admin_product_path(product), class: "text-blue-600 hover:underline text-sm" %>
+            <%= link_to "삭제",
+                        admin_product_path(product),
+                        data: { turbo_method: :delete, turbo_confirm: "정말 삭제할까요?" },
+                        class: "text-red-600 hover:underline text-sm" %>
+          </td>
+          <td class="px-3 py-2 border">
+            <%= form_with(model: [:admin, product],
+                          url: update_stock_admin_product_path(product),
+                          method: :patch,
+                          local: true,
+                          class: "flex flex-col gap-2 md:flex-row md:items-center") do |f| %>
+              <%= f.number_field :stock_quantity,
+                                 value: product.stock_quantity,
+                                 class: "border rounded px-2 py-1 text-sm w-24" %>
+              <%= f.select :stock_status,
+                           Product.stock_statuses.keys.map { |status| [status.humanize, status] },
+                           {},
+                           class: "border rounded px-2 py-1 text-sm" %>
+              <%= f.submit "저장", class: "bg-gray-800 text-white px-3 py-1 rounded text-sm" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
