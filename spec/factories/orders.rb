@@ -7,6 +7,9 @@ FactoryBot.define do
     sequence(:order_number) { |n| "ORD-20250101-#{format('%03d', n)}" }
     policy_snapshot { { "approval_mode" => "manual" } }
     status_history { [] }
+    shipping_name { "Test Receiver" }
+    shipping_phone { "01012341234" }
+    shipping_address { "Seoul Test Address" }
 
     trait :confirmed do
       status { :confirmed }

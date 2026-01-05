@@ -265,120 +265,201 @@ option_settings:
 
 ## Frontend 구현 계획
 
+### Phase F0: 환경 준비 (반나절)
+
+#### 기술 스택 설정
+- [x] Tailwind 초기화 (`rails tailwindcss:install`)
+- [x] tailwind.config.js 생성 확인
+- [x] ViewComponent gem 추가 및 설치 (Gemfile:22)
+- [x] DaisyUI 설치 (package.json, yarn.lock)
+- [x] Noto Sans KR 폰트 추가 (Google Fonts)
+- [x] tailwind.config.js 커스텀 테마 설정 (농산물 직거래 테마)
+
+#### API 문서화
+- [x] 주요 엔드포인트 응답 형식 (라우트 정의 완료)
+  - [x] 장바구니 (resource :cart, resources :cart_items)
+  - [x] 주문 (resources :orders - index, show, new, create)
+  - [x] 상품 (resources :products - index, show)
+
+### 진행 현황 (2026-01-05)
+- [x] CartItem 모델/마이그레이션 생성 및 User 연관 추가, 재고 검증/소계 계산 로직 구현
+- [x] `CartsController`와 라우트: 장바구니 CRUD, 농가별 그룹핑, 전체 비우기 지원
+- [x] ViewComponent 기반 장바구니 UI(`Cart::ItemComponent`, `Cart::FarmerSectionComponent`)와 `carts/show` 템플릿
+- [x] 상품 상세 페이지 “장바구니 담기” 폼과 헤더 장바구니 아이콘/카운트 배지
+- [x] `OrdersController` (index/show/new/create)와 주문서 작성/상세/목록 뷰: 장바구니→농가별 주문 생성, 재고 차감, 장바구니 비우기까지 트랜잭션 처리
+- [x] 라우트/네비게이션: `resources :orders`, 헤더 “내 주문” 링크 및 장바구니→주문 플로우 버튼 연결
+- [x] Tailwind 빌드/Propshaft 연동(`config/propshaft.yml`, `app/assets/config/manifest.js`, `app/assets/builds/tailwind.css`)
+- [x] DaisyUI 테마 정리 및 `data-theme` 적용 (nongsa)
+- [x] 로그인 화면 OmniAuth 링크 가드 처리(Devise `_links` 오버라이드)
+- [x] 상품 목록 가격 표시 오류 수정 (`price_cents` → `price`)
+- [x] 주문 생성 오류 처리/검증 강화 및 배송지 필드 추가 (orders + migration)
+- [x] 농가 승인 링크 요청 스펙 추가 (farmer approval request specs)
+
+---
+
 ### Phase F1: 디자인 시스템/골격 (1주)
 
-#### Tailwind 설정
-- [ ] 컬러 토큰 (primary, secondary, success, warning, danger)
-- [ ] 폰트 (Noto Sans KR)
-- [ ] Spacing, breakpoints
+#### Tailwind + DaisyUI 설정
+- [x] tailwind.config.js 커스텀 테마 설정
+  ```javascript
+  daisyui: {
+    themes: [{
+      "농산물직거래": {
+        "primary": "#16a34a",    // 초록 (농업)
+        "secondary": "#f59e0b",  // 오렌지
+        "success": "#10b981",
+        "warning": "#f59e0b",
+        "error": "#ef4444",
+      }
+    }]
+  }
+  ```
+- [x] 폰트 설정 (Noto Sans KR)
+- [x] Spacing, breakpoints 확인 (Tailwind 기본값 유지)
 
 #### ViewComponent 기본 컴포넌트
-- [ ] Button (primary, secondary, danger)
-- [ ] Badge (상태별 색상: pending, confirmed, completed 등)
-- [ ] Card (상품, 주문)
-- [ ] Form (input, select, textarea)
+- [x] Button (primary, secondary, danger)
+  - [x] Acceptance: hover/disabled/loading 상태 지원
+- [x] Badge (상태별 색상: pending, farmer_review, confirmed, payment_pending, completed, cancelled)
+  - [x] Acceptance: 각 주문 상태에 맞는 색상/텍스트 표시
+- [x] Card (상품, 주문)
+  - [x] Acceptance: 헤더/본문/푸터 슬롯 지원
+- [x] Form (input, select, textarea)
+  - [x] Acceptance: 에러 상태 표시, 필수 필드 마크
 
 #### 전역 레이아웃
-- [ ] 헤더/푸터
-- [ ] 12-col grid
-- [ ] 모바일 반응형
+- [x] 헤더/푸터
+  - [x] Acceptance: 로그인/로그아웃 상태에 따른 네비게이션
+- [x] 반응형 레이아웃 (mobile-first)
+  - [x] Acceptance: 768px 이하에서 모바일 메뉴
 
 #### 접근성
-- [ ] 포커스 링
-- [ ] 대비 AA (WCAG)
-- [ ] 터치 영역 ≥ 44px
+- [x] 포커스 링 (Tailwind 기본 설정 확인)
+- [x] 대비 AA (WCAG) - DaisyUI 테마 대비 컬러 명시
+- [x] 터치 영역 ≥ 44px
 
 ---
 
 ### Phase F2: 소비자 UX (1.5주)
 
-#### 홈/상품
-- [ ] 홈: 농가 목록, 카테고리 필터
-- [ ] 상품 상세: 재고 상태 (⭕/❌), 가격, 주문 수량
-- [ ] 장바구니: 여러 농가 상품 혼합
+#### 홈/상품 (MVP 필수 ⭐)
+- [x] 홈: 농가 목록 기본 표시
+  - [x] Acceptance: 농가명, 대표 상품 이미지, 클릭 시 상품 목록 이동
+- [x] 상품 상세: 재고 상태 (⭕/❌), 가격, 주문 수량
+  - [x] Acceptance: 품절 시 주문 버튼 비활성화, 수량 선택 1-재고수량 범위
+- [x] 장바구니: **농가별 섹션으로 상품 그룹핑** ⚠️ 수정됨
+  - [x] Acceptance:
+    - 농가별 섹션 표시 (농가명 헤더)
+    - 각 섹션마다 소계 표시
+    - 각 섹션마다 독립적인 "○○농가 상품 주문하기" 버튼
+    - 안내 문구: "농가별로 별도 주문이 생성되며, 각 농가의 계좌로 입금하셔야 합니다"
+    - 수량 변경 시 소계 실시간 업데이트
+    - 빈 장바구니 상태 처리
 
-#### 주문 플로우
-- [ ] 주문 생성 폼
-- [ ] 주문 확인 페이지
-- [ ] 주문 완료 페이지
+#### 홈/상품 (런칭 후 추가 🔵)
+- [ ] 카테고리 필터
+- [ ] 상품 검색
+- [ ] 찜하기 기능
+- 우선순위: Search → Category → Wishlist
 
-#### 마이페이지
-- [ ] 주문 목록 (상태별 필터)
+#### 주문 플로우 (MVP 필수 ⭐)
+- [x] 주문 생성 (농가별 개별 주문)
+  - [x] Acceptance: 주문자 정보 입력, 배송지 입력, 주문 확인
+- [x] 주문 확인 페이지
+  - [x] Acceptance: 주문 항목, 총액, 농가 계좌 정보(마스킹) 표시
+- [x] 주문 완료 페이지
+  - [x] Acceptance: 주문 번호, 입금 안내, "내 주문 보기" 링크
+
+#### 마이페이지 (MVP 필수 ⭐)
+- [x] 주문 목록 (상태별 필터)
+  - [x] Acceptance: 최신순 정렬, 상태 배지 표시
 - [ ] 주문 상세:
-  - [ ] 상태 타임라인(Badge)
-  - [ ] 계좌 정보 (마스킹 → 클릭 시 전체 표시)
-  - [ ] "입금 완료" 신고 버튼
-  - [ ] 취소 버튼 (농가 승인 전만 가능)
+  - [x] 상태 타임라인 (Badge)
+    - [x] Acceptance: pending → farmer_review → confirmed → payment_pending → completed 단계 시각화
+  - [x] 계좌 정보 (마스킹 → 클릭 시 전체 표시)
+    - [x] Acceptance: 기본 뒤 4자리만 표시, "전체 보기" 버튼 클릭 시 전체 계좌번호
+  - [x] "입금 완료" 신고 버튼
+    - [x] Acceptance: payment_pending 상태에서만 활성화
+  - [x] 취소 버튼 (농가 승인 전만 가능)
+    - [x] Acceptance: pending, farmer_review 상태에서만 표시, 확인 모달
 
 #### 알림
-- [ ] 농가 승인/거절 알림 표시 (flash 또는 Turbo Stream)
+- [x] 농가 승인/거절 알림 표시 (flash 또는 Turbo Stream)
+  - [x] Acceptance: 성공/에러 메시지 구분, 3초 후 자동 사라짐
 
 #### 테스트
-- [ ] 시스템 테스트: 주문 생성 → 승인 → 입금 신고
-- [ ] 상태 배지 색상
-- [ ] 계좌 마스킹
-- [ ] 취소 제한 (confirmed 이후 불가)
+- [x] 시스템 테스트: 주문 생성 → 승인 → 입금 신고
+- [x] 상태 배지 색상 일관성
+- [x] 계좌 마스킹/전체 표시
+- [x] 취소 제한 (confirmed 이후 불가)
+- [x] 장바구니 농가별 섹션 표시
 
 ---
 
 ### Phase F3: 농가 UX (1주)
 
-#### 타입 A (수동 승인)
-- [ ] 알림톡 링크 페이지:
-  - [ ] 토큰 검증(만료/재사용 차단)
-  - [ ] 주문 목록 카드
-  - [ ] 승인/거절 버튼
-  - [ ] 거절 사유 입력 (선택)
-- [ ] 가드 페이지:
-  - [ ] "링크가 만료되었습니다"
-  - [ ] "이미 처리된 링크입니다"
+#### 타입 A (수동 승인) - MVP 필수 ⭐
+- [x] 알림톡 링크 페이지:
+  - [x] 토큰 검증(만료/재사용 차단)
+    - [x] Acceptance: 유효한 토큰만 페이지 접근, 만료/사용됨 시 가드 페이지
+  - [x] 주문 목록 카드
+    - [x] Acceptance: 주문 항목, 총액, 주문자 정보 표시
+  - [x] 승인/거절 버튼
+    - [x] Acceptance: 클릭 시 확인 모달, 처리 후 완료 메시지
+  - [x] 거절 사유 입력 (선택)
+- [x] 가드 페이지:
+  - [x] "링크가 만료되었습니다"
+  - [x] "이미 처리된 링크입니다"
 
-#### 타입 B (자동 승인)
+#### 타입 B (자동 승인) - 백엔드만으로 동작 ✅
 - [x] 일간 요약 SMS (백엔드에서 발송)
-- [ ] 재고 소진 알림 (선택적 UI)
 
-#### 재고 관리
-- [ ] 재고 수량 수정 폼
-- [ ] 품절 토글 (is_available)
-
-#### 계좌 관리
-- [ ] 계좌 정보 수정 폼
-- [ ] 암호화 저장
+#### 재고/계좌 관리 - 관리자가 대신 처리 🔵
+- [x] (MVP에서 제외, 관리자 대시보드에서 처리)
 
 #### 모바일 최적화
-- [ ] 큰 터치 타겟 (≥ 44px)
-- [ ] 간결한 레이아웃
+- [x] 큰 터치 타겟 (≥ 44px)
+- [x] 간결한 레이아웃
 
 #### 테스트
-- [ ] 토큰 만료/재사용 가드
-- [ ] 승인/거절 흐름
-- [ ] 재고 수정 반영
+- [x] 토큰 만료/재사용 가드
+- [x] 승인/거절 흐름
+- [ ] 모바일 반응형
 
 ---
 
 ### Phase F4: 관리자 UX (1주)
 
-#### 대시보드
+#### 대시보드 (MVP 필수 ⭐)
 - [ ] 미응답 주문 카드 (타임아웃 임박 경고)
+  - [ ] Acceptance: farmer_review 상태, timeout_at 기준 임박 표시 (< 2시간)
 - [ ] 입금 대기 카드
+  - [ ] Acceptance: payment_pending 상태 주문 목록
 - [ ] 오늘의 통계 (주문 건수/금액)
+  - [ ] Acceptance: 당일 생성된 주문 건수, 총 주문 금액
 
-#### 주문 관리
+#### 주문 관리 (MVP 필수 ⭐)
 - [ ] 주문 목록 (필터: 상태별)
+  - [ ] Acceptance: 상태별 탭, 검색, 정렬
 - [ ] 주문 상세:
   - [ ] 대리 승인/거절 버튼
+    - [ ] Acceptance: farmer_review 상태에서만 표시, 처리 시 소비자 알림 발송
   - [ ] 입금 확인 버튼
+    - [ ] Acceptance: payment_pending 상태에서만 표시, 확인 방법 입력 필수
   - [ ] 관리자 메모 입력
+    - [ ] Acceptance: 자동 저장, 이력 표시
 
-#### 농가/상품 관리
-- [ ] 농가 CRUD (목록, 등록, 수정, 삭제)
-- [ ] 상품 CRUD (목록, 등록, 수정, 삭제)
+#### 농가/상품 관리 (MVP에서는 seed 데이터 활용 🔵)
+- [ ] 농가 CRUD (기본 목록/수정만 구현, 등록/삭제는 런칭 후)
+- [ ] 상품 CRUD (기본 목록/수정만 구현, 등록/삭제는 런칭 후)
+- [ ] 재고 수정 (관리자가 농가 대신 처리)
 
-#### 데이터
+#### 데이터 (MVP 필수 ⭐)
 - [ ] CSV 다운로드 (주문 목록)
+  - [ ] Acceptance: 현재 필터 조건 기준, 주문번호/날짜/농가/상태/금액 포함
 
 #### 테스트
-- [ ] 대리 승인/거절 흐름
+- [ ] 대리 승인/거절 흐름 + 소비자 알림 발송
 - [ ] 입금 확인 흐름
 - [ ] CSV 다운로드
 - [ ] 관리자 메모 저장
@@ -434,6 +515,23 @@ option_settings:
 ---
 
 ## 마일스톤 요약
+
+| Phase | Backend | Frontend | 기간 | 누적 |
+|-------|---------|----------|------|------|
+| 0 | ✅ 완료 | 환경 준비 (Tailwind/ViewComponent/DaisyUI) | 0.5일 | 0.5일 |
+| 1 | ✅ 완료 | 디자인 시스템 | 1주 | 1.5주 |
+| 2 | ✅ 완료 | 소비자 UX | 1.5주 | 3주 |
+| 3 | ✅ 완료 | 농가 UX | 1주 | 4주 |
+| 4 | ✅ 완료 | 관리자 UX | 1주 | 5주 |
+| 5 | ✅ 완료 | QA/가이드 | 0.5주 | 5.5주 |
+
+**총 예상 기간**: 5.5주 (1인 기준)
+**백엔드 상태**: ✅ B1-B5 완료
+**프론트엔드 상태**: Phase F0부터 시작 필요
+
+---
+
+## 마일스톤 요약 (기존)
 
 | Phase | Backend | Frontend | 기간 | 누적 |
 |-------|---------|----------|------|------|

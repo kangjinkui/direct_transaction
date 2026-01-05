@@ -28,6 +28,35 @@ Rails.application.routes.draw do
   get "home/index"
   resource :admin_otp, only: %i[new create]
   get "/health", to: "health#show"
+
+  # Public routes
+  get "/farmer/approvals/:token", to: "farmer_order_approvals#show", as: :farmer_approval
+  post "/farmer/approvals/:token/approve", to: "farmer_order_approvals#approve", as: :approve_farmer_approval
+  post "/farmer/approvals/:token/reject", to: "farmer_order_approvals#reject", as: :reject_farmer_approval
+
+  resources :products, only: [:index, :show]
+  resources :farmers, only: [:show] do
+    resources :products, only: [:index]
+  end
+
+  # Cart routes
+  resource :cart, only: [:show], controller: 'carts'
+  resources :cart_items, only: [:create, :update, :destroy], controller: 'carts' do
+    collection do
+      delete :destroy_all
+    end
+  end
+
+  # Order routes
+  resources :orders, only: [:index, :show, :new, :create] do
+    collection do
+      get :complete
+    end
+    member do
+      post :report_payment
+      post :cancel
+    end
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

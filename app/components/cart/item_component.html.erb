@@ -1,0 +1,38 @@
+<div class="flex gap-4 p-4 bg-base-100 rounded-lg border border-base-300">
+  <%= image_tag product.image_url.presence || "https://via.placeholder.com/100",
+                class: "w-24 h-24 object-cover rounded",
+                alt: product.name %>
+
+  <div class="flex-1">
+    <h4 class="font-medium text-base-content"><%= product.name %></h4>
+    <p class="text-sm text-base-content/70"><%= product.farmer.name %></p>
+    <p class="text-lg font-bold text-primary mt-2"><%= number_to_currency(product.price) %>원</p>
+  </div>
+
+  <div class="flex flex-col justify-between items-end">
+    <button type="button"
+            onclick="document.getElementById('delete-form-<%= cart_item.id %>').submit()"
+            class="btn btn-ghost btn-sm btn-circle">
+      ✕
+    </button>
+
+    <div class="flex items-center gap-2">
+      <%= form_with url: cart_item_path(cart_item), method: :patch, class: "flex items-center gap-2" do |f| %>
+        <%= f.number_field :quantity,
+                          value: cart_item.quantity,
+                          min: 1,
+                          max: product.stock_quantity,
+                          class: "input input-bordered input-sm w-20 text-center",
+                          onchange: "this.form.submit()" %>
+      <% end %>
+      <span class="text-sm text-base-content/70">/ <%= product.stock_quantity %></span>
+    </div>
+
+    <p class="text-lg font-bold text-accent">
+      <%= number_to_currency(cart_item.subtotal) %>원
+    </p>
+  </div>
+</div>
+
+<%= form_with url: cart_item_path(cart_item), method: :delete, id: "delete-form-#{cart_item.id}", class: "hidden" do |f| %>
+<% end %>

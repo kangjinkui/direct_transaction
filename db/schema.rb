@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_18_000100) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_05_121500) do
   create_table "admin_otp_challenges", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "code", null: false
@@ -22,6 +22,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_18_000100) do
     t.index ["expires_at"], name: "index_admin_otp_challenges_on_expires_at"
     t.index ["user_id", "code"], name: "index_admin_otp_challenges_on_user_id_and_code"
     t.index ["user_id"], name: "index_admin_otp_challenges_on_user_id"
+  end
+
+  create_table "cart_items", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "product_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_cart_items_on_product_id"
+    t.index ["user_id", "product_id"], name: "index_cart_items_on_user_id_and_product_id", unique: true
+    t.index ["user_id"], name: "index_cart_items_on_user_id"
   end
 
   create_table "farmers", force: :cascade do |t|
@@ -116,6 +127,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_18_000100) do
     t.datetime "last_status_changed_at"
     t.bigint "last_status_changed_by_id"
     t.string "last_status_changed_by_type"
+    t.string "shipping_name", default: "", null: false
+    t.string "shipping_phone", default: "", null: false
+    t.string "shipping_address", default: "", null: false
+    t.string "shipping_zip_code"
+    t.text "delivery_memo"
     t.index ["farmer_id"], name: "index_orders_on_farmer_id"
     t.index ["last_status_changed_by_type", "last_status_changed_by_id"], name: "index_orders_on_last_status_changed_by"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
@@ -198,6 +214,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_18_000100) do
   end
 
   add_foreign_key "admin_otp_challenges", "users"
+  add_foreign_key "cart_items", "products"
+  add_foreign_key "cart_items", "users"
   add_foreign_key "notifications", "farmers"
   add_foreign_key "notifications", "orders"
   add_foreign_key "order_approval_tokens", "orders"

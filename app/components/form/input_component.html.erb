@@ -1,0 +1,33 @@
+<div class="form-control w-full">
+  <%= form.label attribute, label_text, class: "label" do %>
+    <span class="label-text"><%= label_text %></span>
+  <% end %>
+
+  <% if input_method == :select %>
+    <%= form.select(attribute,
+                    options || [],
+                    { include_blank: include_blank },
+                    html_options.merge(
+                      class: input_css_classes,
+                      required: required
+                    )) %>
+  <% else %>
+    <%= form.send(input_method,
+                  attribute,
+                  html_options.merge(
+                    class: input_css_classes,
+                    placeholder: placeholder,
+                    required: required
+                  )) %>
+  <% end %>
+
+  <% if hint || has_errors? %>
+    <label class="label">
+      <% if has_errors? %>
+        <span class="label-text-alt text-error"><%= error_messages %></span>
+      <% elsif hint %>
+        <span class="label-text-alt"><%= hint %></span>
+      <% end %>
+    </label>
+  <% end %>
+</div>

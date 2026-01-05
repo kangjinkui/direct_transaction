@@ -1,0 +1,21 @@
+<div class="<%= css_classes %>">
+  <% if header? %>
+    <div class="card-header px-6 pt-6">
+      <%= header %>
+    </div>
+  <% end %>
+
+  <div class="card-body">
+    <% if body? %>
+      <%= body %>
+    <% else %>
+      <%= content %>
+    <% end %>
+  </div>
+
+  <% if footer? %>
+    <div class="card-footer px-6 pb-6">
+      <%= footer %>
+    </div>
+  <% end %>
+</div>

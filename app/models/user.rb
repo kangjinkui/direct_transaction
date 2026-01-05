@@ -26,6 +26,8 @@ class User < ApplicationRecord
   validates :phone, uniqueness: true, allow_blank: true
 
   has_many :admin_otp_challenges, dependent: :destroy
+  has_many :cart_items, dependent: :destroy
+  has_many :orders, dependent: :destroy
 
   scope :admins, -> { where(role: %w[admin staff viewer]) }
 

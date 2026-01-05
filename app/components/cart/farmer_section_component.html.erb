@@ -1,0 +1,37 @@
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="avatar placeholder">
+          <div class="bg-primary text-primary-content rounded-full w-12">
+            <span class="text-xl"><%= farmer.name[0] %></span>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg"><%= farmer.name %></h3>
+          <p class="text-sm text-base-content/70"><%= farmer.location %></p>
+        </div>
+      </div>
+      <div class="badge badge-primary"><%= cart_items.count %>개 상품</div>
+    </div>
+
+    <div class="space-y-3">
+      <% cart_items.each do |cart_item| %>
+        <%= render Cart::ItemComponent.new(cart_item: cart_item) %>
+      <% end %>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="flex justify-between items-center">
+      <span class="font-medium">농가별 합계</span>
+      <span class="text-2xl font-bold text-primary"><%= number_to_currency(total, unit: "", precision: 0) %>원</span>
+    </div>
+
+    <div class="mt-4">
+      <%= link_to "#{farmer.name} 상품 주문하기",
+                  new_order_path,
+                  class: "btn btn-primary btn-block" %>
+    </div>
+  </div>
+</div>

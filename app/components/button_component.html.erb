@@ -1,0 +1,6 @@
+<button <%= tag.attributes(button_attributes) %>>
+  <% if loading %>
+    <span class="loading loading-spinner loading-sm"></span>
+  <% end %>
+  <%= content %>
+</button>

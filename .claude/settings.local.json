@@ -4,7 +4,14 @@
       "Bash(git push:*)",
       "Bash(git config:*)",
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cat:*)",
+      "Bash(bundle install:*)",
+      "Bash(./bin/rails:*)",
+      "Bash(wsl bundle:*)",
+      "Bash(wsl ls:*)",
+      "Bash(wsl yarn install:*)",
+      "Bash(wsl:*)"
     ],
     "deny": [],
     "ask": []

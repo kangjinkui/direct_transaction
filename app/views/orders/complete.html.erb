@@ -1,0 +1,43 @@
+<div class="max-w-4xl mx-auto">
+  <div class="card bg-base-100 shadow-lg mb-8">
+    <div class="card-body">
+      <h1 class="text-3xl font-bold">주문이 완료되었습니다</h1>
+      <p class="text-base-content/70 mt-2">농가별로 주문이 생성되었습니다. 주문 상세에서 입금 정보를 확인하세요.</p>
+      <div class="mt-4">
+        <%= link_to "내 주문 보기", orders_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <% @orders.each do |order| %>
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-base-content/70">주문번호</p>
+              <p class="text-lg font-bold"><%= order.order_number %></p>
+              <p class="text-sm text-base-content/70 mt-1"><%= order.farmer.name %></p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-base-content/70">총 결제 금액</p>
+              <p class="text-xl font-bold text-primary"><%= number_to_currency(order.total_amount, unit: "₩", precision: 0) %></p>
+            </div>
+          </div>
+
+          <div class="mt-4 text-sm text-base-content/70">
+            <% if order.farmer.account_info.present? %>
+              입금 계좌: <span class="font-medium"><%= order.farmer.masked_account_info %></span>
+            <% else %>
+              입금 계좌: 주문 상세에서 확인 가능합니다.
+            <% end %>
+          </div>
+
+          <div class="mt-4">
+            <%= link_to "주문 상세 보기", order_path(order), class: "btn btn-ghost btn-sm" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

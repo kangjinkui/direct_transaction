@@ -1,0 +1,192 @@
+<div class="max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold">주문 상세</h1>
+    <%= link_to "<- 주문 목록", orders_path, class: "btn btn-ghost" %>
+  </div>
+
+  <!-- 주문 상태 요약 -->
+  <div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-base-content/70">주문번호</p>
+          <p class="text-xl font-bold"><%= @order.order_number %></p>
+        </div>
+        <div class="text-right">
+          <%= render BadgeComponent.new(status: @order.status) %>
+          <p class="text-sm text-base-content/70 mt-2">
+            주문일시: <%= l(@order.created_at, format: :long) %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상태 타임라인 -->
+  <% statuses = %w[pending farmer_review confirmed payment_pending completed] %>
+  <% current_index = statuses.index(@order.status) || -1 %>
+  <div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+      <h2 class="card-title">주문 진행 상태</h2>
+      <ul class="steps steps-vertical lg:steps-horizontal w-full mt-4">
+        <% statuses.each_with_index do |status, index| %>
+          <% label = BadgeComponent::STATUS_CONFIG.dig(status.to_sym, :text) || status.humanize %>
+          <li class="step <%= 'step-primary' if index <= current_index %>"><%= label %></li>
+        <% end %>
+      </ul>
+      <% if @order.cancelled? %>
+        <p class="text-sm text-error mt-4">주문이 취소되었습니다.</p>
+      <% elsif @order.rejected? %>
+        <p class="text-sm text-error mt-4">주문이 거절되었습니다.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <!-- 농가 정보 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">농가 정보</h2>
+          <div class="flex items-center gap-3">
+            <div class="avatar placeholder">
+              <div class="bg-primary text-primary-content rounded-full w-12">
+                <span class="text-xl"><%= @order.farmer.name[0] %></span>
+              </div>
+            </div>
+            <div>
+              <p class="font-bold"><%= @order.farmer.name %></p>
+              <p class="text-sm text-base-content/70"><%= @order.farmer.location %></p>
+              <% if @order.farmer.phone.present? %>
+                <p class="text-sm text-base-content/70">TEL: <%= @order.farmer.phone %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 주문 상품 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">주문 상품</h2>
+          <div class="space-y-3">
+            <% @order.order_items.each do |item| %>
+              <div class="flex justify-between items-center py-3 border-b border-base-200 last:border-0">
+                <div class="flex gap-4">
+                  <%= image_tag item.product.image_url.presence || "https://via.placeholder.com/60",
+                                class: "w-16 h-16 object-cover rounded",
+                                alt: item.product.name %>
+                  <div>
+                    <p class="font-medium"><%= item.product.name %></p>
+                    <p class="text-sm text-base-content/70">
+                      <%= number_to_currency(item.price, unit: "", precision: 0) %>원 × <%= item.quantity %>개
+                    </p>
+                  </div>
+                </div>
+                <p class="font-bold text-primary">
+                  <%= number_to_currency(item.line_total, unit: "", precision: 0) %>원
+                </p>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="flex justify-between items-center text-lg">
+            <span class="font-bold">합계</span>
+            <span class="text-2xl font-bold text-primary">
+              <%= number_to_currency(@order.total_amount, unit: "", precision: 0) %>원
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 배송지 정보 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">배송지 정보</h2>
+          <div class="space-y-2">
+            <div>
+              <p class="text-sm text-base-content/70">받는 분</p>
+              <p class="font-medium"><%= @order.shipping_name %></p>
+            </div>
+            <div>
+              <p class="text-sm text-base-content/70">연락처</p>
+              <p class="font-medium"><%= @order.shipping_phone %></p>
+            </div>
+            <% if @order.shipping_zip_code.present? %>
+              <div>
+                <p class="text-sm text-base-content/70">우편번호</p>
+                <p class="font-medium"><%= @order.shipping_zip_code %></p>
+              </div>
+            <% end %>
+            <div>
+              <p class="text-sm text-base-content/70">주소</p>
+              <p class="font-medium"><%= @order.shipping_address %></p>
+            </div>
+            <% if @order.delivery_memo.present? %>
+              <div>
+                <p class="text-sm text-base-content/70">배송 메모</p>
+                <p class="font-medium"><%= @order.delivery_memo %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 사이드바: 결제/입금 정보 -->
+    <div class="lg:col-span-1">
+      <div class="card bg-base-100 shadow-lg sticky top-4">
+        <div class="card-body">
+          <h3 class="card-title">결제 정보</h3>
+
+          <% if @order.payment %>
+            <div class="bg-base-200 p-3 rounded text-sm space-y-1 mt-4">
+              <% if @order.payment.account_holder.present? %>
+                <p><span class="font-medium">예금주:</span> <%= @order.payment.account_holder %></p>
+              <% end %>
+              <% if @order.payment.bank_name.present? %>
+                <p><span class="font-medium">은행:</span> <%= @order.payment.bank_name %></p>
+              <% end %>
+              <% if @order.payment.account_number.present? %>
+                <p><span class="font-medium">계좌번호:</span> <%= @order.payment.account_number %></p>
+              <% end %>
+              <p><span class="font-medium">입금액:</span> <%= number_to_currency(@order.total_amount, unit: "", precision: 0) %>원</p>
+            </div>
+          <% elsif @order.farmer&.account_info.present? %>
+            <div class="bg-base-200 p-3 rounded text-sm space-y-2 mt-4">
+              <p><span class="font-medium">계좌:</span> <%= @order.farmer.masked_account_info %></p>
+              <p><span class="font-medium">입금액:</span> <%= number_to_currency(@order.total_amount, unit: "", precision: 0) %>원</p>
+              <details class="mt-2">
+                <summary class="cursor-pointer text-primary">전체 계좌 보기</summary>
+                <p class="mt-2"><span class="font-medium">계좌:</span> <%= @order.farmer.account_info %></p>
+              </details>
+              <p class="text-xs text-base-content/70">입금 후 "입금 완료" 신고를 진행해주세요.</p>
+            </div>
+          <% else %>
+            <p class="text-sm text-base-content/70 mt-4">결제 정보가 없습니다.</p>
+          <% end %>
+
+          <div class="mt-6 space-y-2">
+            <% if @order.payment_pending? %>
+              <%= button_to "입금 완료 신고", report_payment_order_path(@order), method: :post, class: "btn btn-primary btn-block" %>
+            <% end %>
+            <% if @order.pending? || @order.farmer_review? %>
+              <%= button_to "주문 취소", cancel_order_path(@order),
+                            method: :post,
+                            data: { confirm: "주문을 취소하시겠습니까?" },
+                            class: "btn btn-ghost btn-block text-error" %>
+            <% end %>
+          </div>
+
+          <% if @order.timeout_at && !@order.completed? && !@order.cancelled? %>
+            <div class="text-sm text-base-content/70 text-center mt-4">
+              주문 유효기간: <%= l(@order.timeout_at, format: :short) %>까지
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

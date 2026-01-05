@@ -34,9 +34,20 @@
 
 /public/assets
 
+# Node dependencies (always generated)
+/node_modules/
+
+# Tailwind build output (keep the main CSS if you want to commit it)
+/app/assets/builds/*
+!/app/assets/builds/.keep
+!/app/assets/builds/tailwind.css
+
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
 /config/credentials/test.key
 
 /db/*.sqlite3
+
+# Codex local settings
+/.claude/settings.local.json

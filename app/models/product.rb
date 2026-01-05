@@ -21,6 +21,10 @@ class Product < ApplicationRecord
   scope :available_for_sale, -> { where.not(stock_status: :sold_out) }
   scope :available, -> { where(is_available: true) }
 
+  def in_stock?
+    is_available && stock_quantity.to_i.positive? && stock_status != "sold_out"
+  end
+
   private
 
   def ensure_sku

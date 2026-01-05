@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="nongsa">
   <head>
     <title><%= content_for(:title) || "Myapp" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -17,16 +17,119 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%# Google Fonts - Noto Sans KR %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <%# Tailwind output + any legacy styles %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
   </head>
 
-  <body>
-    <div class="flash-container">
-      <% flash.each do |type, message| %>
-        <p class="flash flash-<%= type %>"><%= message %></p>
-      <% end %>
-    </div>
-    <%= yield %>
+  <body class="min-h-screen bg-base-200">
+    <!-- Header -->
+    <header class="navbar bg-base-100 shadow-md sticky top-0 z-50 px-4">
+      <div class="navbar-start">
+        <div class="dropdown lg:hidden">
+          <label tabindex="0" class="btn btn-ghost btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+            <%= render partial: "layouts/nav_items" %>
+          </ul>
+        </div>
+        <%= link_to root_path, class: "btn btn-ghost text-xl" do %>
+          <span class="text-primary">농산물</span> 직거래
+        <% end %>
+      </div>
+
+      <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal px-1">
+          <%= render partial: "layouts/nav_items" %>
+        </ul>
+      </div>
+
+      <div class="navbar-end gap-2">
+        <% if user_signed_in? %>
+          <%= link_to cart_path, class: "btn btn-ghost btn-circle indicator" do %>
+            <% cart_count = current_user.cart_items.sum(:quantity) %>
+            <% if cart_count > 0 %>
+              <span class="indicator-item badge badge-primary badge-sm"><%= cart_count %></span>
+            <% end %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          <% end %>
+
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-circle avatar placeholder">
+              <div class="bg-primary text-primary-content rounded-full w-10">
+                <span class="text-sm"><%= current_user.name&.first || 'U' %></span>
+              </div>
+            </label>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+              <li class="menu-title"><%= current_user.name %></li>
+              <li><%= link_to "내 주문", orders_path %></li>
+              <li><%= link_to "프로필", "#" %></li>
+              <li><%= button_to "로그아웃", destroy_user_session_path, method: :delete, class: "text-error" %></li>
+            </ul>
+          </div>
+        <% else %>
+          <%= link_to "로그인", new_user_session_path, class: "btn btn-primary" %>
+        <% end %>
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <% if flash.any? %>
+      <div class="page-container py-4" id="flash-container">
+        <% flash.each do |type, message| %>
+          <div class="alert <%= type == 'notice' || type == 'success' ? 'alert-success' : 'alert-error' %> shadow-lg mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span><%= message %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Main Content -->
+    <main class="page-container py-6">
+      <%= yield %>
+    </main>
+
+    <script>
+      (() => {
+        const container = document.getElementById("flash-container");
+        if (!container) return;
+        window.setTimeout(() => {
+          container.classList.add("opacity-0");
+          container.classList.add("transition-opacity");
+          window.setTimeout(() => container.remove(), 300);
+        }, 3000);
+      })();
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-100 text-base-content mt-auto">
+      <aside>
+        <p class="font-bold text-lg">
+          <span class="text-primary">농산물</span> 직거래
+        </p>
+        <p>신선한 농산물을 농가에서 직접</p>
+        <p class="text-sm opacity-60">© 2026 농산물직거래. All rights reserved.</p>
+      </aside>
+      <nav>
+        <div class="grid grid-flow-col gap-4">
+          <%= link_to "이용약관", "#", class: "link link-hover" %>
+          <%= link_to "개인정보처리방침", "#", class: "link link-hover" %>
+          <%= link_to "FAQ", "#", class: "link link-hover" %>
+        </div>
+      </nav>
+    </footer>
   </body>
 </html>

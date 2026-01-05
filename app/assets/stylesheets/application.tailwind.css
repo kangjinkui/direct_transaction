@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  body {
+    @apply font-sans bg-gray-50 min-h-screen text-slate-900;
+  }
+}
+
+@layer components {
+  .page-container {
+    @apply container mx-auto px-4;
+  }
+
+  .btn:focus-visible,
+  .input:focus-visible,
+  .select:focus-visible,
+  .textarea:focus-visible,
+  .link:focus-visible,
+  a:focus-visible {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+  }
+
+  .btn,
+  .input,
+  .select,
+  .textarea {
+    min-height: 44px;
+  }
+}

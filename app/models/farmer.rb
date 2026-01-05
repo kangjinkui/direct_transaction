@@ -13,6 +13,16 @@ class Farmer < ApplicationRecord
   validates :phone, uniqueness: true
   validates :stock_quantity, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
+  # Alias for business_name for convenience
+  def name
+    business_name
+  end
+
+  def location
+    # TODO: Add location field to farmers table
+    "위치 정보 없음"
+  end
+
   def account_info=(value)
     @account_info = value
     @account_info_changed = true

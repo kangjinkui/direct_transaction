@@ -1,0 +1,58 @@
+<div class="mb-8">
+  <% if @farmer %>
+    <!-- Farmer Header -->
+    <div class="mb-6">
+      <%= link_to "← 농가 목록으로", root_path, class: "btn btn-ghost btn-sm mb-4" %>
+      <h1 class="text-4xl font-bold"><%= @farmer.name %></h1>
+      <p class="text-lg opacity-70 mt-2">신선한 농산물을 만나보세요</p>
+    </div>
+  <% else %>
+    <h1 class="text-4xl font-bold mb-6">전체 상품</h1>
+  <% end %>
+
+  <!-- Products Grid -->
+  <% if @products.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @products.each do |product| %>
+        <%= render CardComponent.new(bordered: true) do |card| %>
+          <% card.with_body do %>
+            <h3 class="card-title text-xl mb-2"><%= product.name %></h3>
+
+            <% unless @farmer %>
+              <p class="text-sm opacity-70 mb-2">
+                <%= product.farmer.name %>
+              </p>
+            <% end %>
+
+            <div class="flex items-center justify-between my-4">
+              <span class="text-2xl font-bold text-primary">
+                <%= number_to_currency(product.price, unit: "₩", precision: 0) %>
+              </span>
+
+              <% if product.in_stock? %>
+                <%= render BadgeComponent.new(status: :success, custom_text: "재고 #{product.stock_quantity}개") %>
+              <% else %>
+                <%= render BadgeComponent.new(status: :error, custom_text: "품절") %>
+              <% end %>
+            </div>
+
+            <% if product.description.present? %>
+              <p class="text-sm opacity-70 line-clamp-2 mb-4">
+                <%= product.description %>
+              </p>
+            <% end %>
+
+            <%= link_to "상세 보기", product_path(product), class: "btn btn-primary btn-block" %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>현재 판매중인 상품이 없습니다.</span>
+    </div>
+  <% end %>
+</div>

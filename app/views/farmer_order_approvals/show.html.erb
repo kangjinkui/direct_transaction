@@ -1,0 +1,79 @@
+<div class="max-w-4xl mx-auto px-4">
+  <div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+      <h1 class="text-3xl font-bold">주문 승인 요청</h1>
+      <p class="text-base-content/70 mt-2">주문번호 <%= @order.order_number %></p>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+      <h2 class="card-title">주문자 정보</h2>
+      <div class="grid md:grid-cols-2 gap-4 mt-4 text-sm">
+        <div>
+          <p class="text-base-content/70">받는 분</p>
+          <p class="font-medium"><%= @order.shipping_name %></p>
+        </div>
+        <div>
+          <p class="text-base-content/70">연락처</p>
+          <p class="font-medium"><%= @order.shipping_phone %></p>
+        </div>
+        <div class="md:col-span-2">
+          <p class="text-base-content/70">배송지</p>
+          <p class="font-medium"><%= @order.shipping_address %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-lg mb-6">
+    <div class="card-body">
+      <h2 class="card-title">주문 상품</h2>
+      <div class="space-y-3 mt-4">
+        <% @order.order_items.each do |item| %>
+          <div class="flex justify-between items-center border-b border-base-200 pb-3 last:border-0">
+            <div>
+              <p class="font-medium"><%= item.product.name %></p>
+              <p class="text-sm text-base-content/70">
+                <%= number_to_currency(item.price, unit: "₩", precision: 0) %> × <%= item.quantity %>개
+              </p>
+            </div>
+            <p class="font-bold text-primary">
+              <%= number_to_currency(item.line_total, unit: "₩", precision: 0) %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="flex justify-between items-center text-lg">
+        <span class="font-bold">합계</span>
+        <span class="text-2xl font-bold text-primary">
+          <%= number_to_currency(@order.total_amount, unit: "₩", precision: 0) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-lg">
+    <div class="card-body">
+      <h2 class="card-title">승인/거절</h2>
+
+      <div class="flex flex-col md:flex-row gap-4 mt-4">
+        <%= button_to "승인하기",
+                      approve_farmer_approval_path(@token.token),
+                      method: :post,
+                      class: "btn btn-primary btn-lg flex-1" %>
+
+        <%= form_with url: reject_farmer_approval_path(@token.token), method: :post, class: "flex-1 space-y-2" do |f| %>
+          <%= f.text_area :rejection_reason,
+                          class: "textarea textarea-bordered w-full",
+                          rows: 2,
+                          placeholder: "거절 사유를 입력하세요 (선택)" %>
+          <%= f.submit "거절하기", class: "btn btn-ghost btn-lg text-error w-full" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -22,8 +22,8 @@ RSpec.describe "Order flow", type: :system do
     login_as(user, scope: :user)
 
     # Create order via direct factory (no UI flow implemented)
-    order = create(:order, user:, farmer:, status: :farmer_review, total_amount: 10000)
-    create(:order_item, order:, product:, quantity: 2, price: 5000)
+    order = create(:order, user:, farmer:, status: :farmer_review, total_amount: 10_000)
+    create(:order_item, order:, product:, quantity: 2, price: 5_000)
 
     # Farmer approves via service (simulating approval link)
     approval = OrderApprovalService.new(order).generate_token
@@ -34,6 +34,7 @@ RSpec.describe "Order flow", type: :system do
     # Admin verifies payment
     login_as(admin, scope: :user)
     payment = PaymentService.new(order).report_transfer(amount: order.total_amount, reference: "TEST-REF").payment
+    expect(order.reload.status).to eq("payment_pending")
     result = PaymentService.new(order).verify!(verified_at: Time.current, admin_note: "Test", verification_method: :phone_call)
     expect(result.status).to eq(:completed)
     expect(order.reload.status).to eq("completed")

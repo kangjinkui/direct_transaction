@@ -18,6 +18,8 @@ gem "stimulus-rails"
 gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+# ViewComponent for reusable components [https://viewcomponent.org]
+gem "view_component"
 gem "devise"
 gem "omniauth"
 gem "omniauth-rails_csrf_protection"

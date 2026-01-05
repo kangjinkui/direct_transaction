@@ -26,6 +26,7 @@ class Order < ApplicationRecord
 
   validates :order_number, presence: true, uniqueness: true
   validates :total_amount, numericality: { greater_than_or_equal_to: 0 }
+  validates :shipping_name, :shipping_phone, :shipping_address, presence: true
 
   before_validation :assign_order_number, on: :create
   before_validation :assign_timeout_at, on: :create

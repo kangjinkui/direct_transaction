@@ -1,0 +1,80 @@
+<div class="max-w-4xl mx-auto">
+  <%= link_to "← 뒤로 가기", products_path(farmer_id: @farmer.id), class: "btn btn-ghost btn-sm mb-6" %>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <!-- Product Image Placeholder -->
+    <div class="bg-base-300 rounded-lg flex items-center justify-center h-96">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    </div>
+
+    <!-- Product Details -->
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-4xl font-bold mb-2"><%= @product.name %></h1>
+        <p class="text-lg opacity-70"><%= @farmer.name %></p>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <span class="text-3xl font-bold text-primary">
+          <%= number_to_currency(@product.price, unit: "₩", precision: 0) %>
+        </span>
+        <% if @product.in_stock? %>
+          <%= render BadgeComponent.new(status: :success, custom_text: "재고 #{@product.stock_quantity}개") %>
+        <% else %>
+          <%= render BadgeComponent.new(status: :error, custom_text: "품절") %>
+        <% end %>
+      </div>
+
+      <% if @product.description.present? %>
+        <div class="prose">
+          <h3 class="font-bold text-lg mb-2">상품 설명</h3>
+          <p class="opacity-80"><%= simple_format(@product.description) %></p>
+        </div>
+      <% end %>
+
+      <!-- Add to Cart Form -->
+      <% if user_signed_in? && @product.in_stock? %>
+        <%= form_with url: cart_items_path, method: :post, class: "space-y-4" do |f| %>
+          <%= f.hidden_field :product_id, value: @product.id %>
+          <div class="form-control">
+            <%= f.label :quantity, "주문 수량", class: "label" %>
+            <div class="flex gap-2">
+              <%= f.number_field :quantity,
+                                  value: 1,
+                                  min: 1,
+                                  max: @product.stock_quantity,
+                                  class: "input input-bordered flex-1",
+                                  aria: { describedby: "stock-help" } %>
+              <span id="stock-help" class="flex items-center px-4 opacity-70">/ <%= @product.stock_quantity %></span>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <%= render ButtonComponent.new(variant: :primary, type: "submit", class: "flex-1") do %>
+              🛒 장바구니에 추가
+            <% end %>
+          </div>
+        <% end %>
+      <% elsif !user_signed_in? %>
+        <div class="alert alert-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p>로그인 후 구매 가능합니다</p>
+            <%= link_to "로그인", new_user_session_path, class: "btn btn-sm btn-warning mt-2" %>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>현재 품절된 상품입니다</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
