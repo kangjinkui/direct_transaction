@@ -16,7 +16,8 @@ class User < ApplicationRecord
          user: "user",
          admin: "admin",
          staff: "staff",
-         viewer: "viewer"
+         viewer: "viewer",
+         farmer: "farmer"
        },
        default: :user,
        validate: true
@@ -28,6 +29,7 @@ class User < ApplicationRecord
   has_many :admin_otp_challenges, dependent: :destroy
   has_many :cart_items, dependent: :destroy
   has_many :orders, dependent: :destroy
+  has_one :farmer_profile, class_name: "Farmer", foreign_key: :user_id, dependent: :destroy
 
   scope :admins, -> { where(role: %w[admin staff viewer]) }
 
@@ -52,5 +54,9 @@ class User < ApplicationRecord
 
   def admin_like?
     %w[admin staff].include?(role)
+  end
+
+  def farmer?
+    role == "farmer"
   end
 end

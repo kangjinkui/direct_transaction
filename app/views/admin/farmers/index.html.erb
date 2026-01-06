@@ -1,52 +1,78 @@
-<div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-semibold">농가 관리</h1>
-  <%= link_to "농가 추가", new_admin_farmer_path, class: "bg-blue-600 text-white px-4 py-2 rounded text-sm" %>
-</div>
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">농가 관리</h1>
+      <p class="text-sm text-base-content/70">농가 정보를 확인하고 관리합니다.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "농가 추가", new_admin_farmer_path, class: "btn btn-primary btn-sm" %>
+      <%= link_to "관리자 대시보드", admin_dashboard_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </div>
 
-<% if @farmers.empty? %>
-  <p class="text-gray-600">등록된 농가가 없습니다.</p>
-<% else %>
-  <table class="min-w-full border border-gray-200 text-sm bg-white">
-    <thead>
-      <tr class="bg-gray-50 text-left">
-        <th class="px-3 py-2 border">상호</th>
-        <th class="px-3 py-2 border">대표자</th>
-        <th class="px-3 py-2 border">연락처</th>
-        <th class="px-3 py-2 border">재고</th>
-        <th class="px-3 py-2 border">알림 방식</th>
-        <th class="px-3 py-2 border">승인 방식</th>
-        <th class="px-3 py-2 border">계좌</th>
-        <th class="px-3 py-2 border">관리</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @farmers.each do |farmer| %>
-        <tr>
-          <td class="px-3 py-2 border font-medium"><%= farmer.business_name %></td>
-          <td class="px-3 py-2 border"><%= farmer.owner_name %></td>
-          <td class="px-3 py-2 border"><%= farmer.phone %></td>
-          <td class="px-3 py-2 border"><%= farmer.stock_quantity %></td>
-          <td class="px-3 py-2 border"><%= farmer.notification_method %></td>
-          <td class="px-3 py-2 border"><%= farmer.approval_mode %></td>
-          <td class="px-3 py-2 border">
-            <div class="text-sm"><%= farmer.masked_account_info.presence || "-" %></div>
-            <%= link_to "전체 보기",
-                        account_info_admin_farmer_path(farmer),
-                        data: { turbo_frame: "account_info_modal" },
-                        class: "text-xs text-blue-600 hover:underline" %>
-          </td>
-          <td class="px-3 py-2 border space-x-2 whitespace-nowrap">
-            <%= link_to "보기", admin_farmer_path(farmer), class: "text-blue-600 hover:underline text-sm" %>
-            <%= link_to "수정", edit_admin_farmer_path(farmer), class: "text-blue-600 hover:underline text-sm" %>
-            <%= link_to "삭제",
-                        admin_farmer_path(farmer),
-                        data: { turbo_method: :delete, turbo_confirm: "정말 삭제할까요?" },
-                        class: "text-red-600 hover:underline text-sm" %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% end %>
+  <% if @farmers.empty? %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body text-sm text-base-content/70">등록된 농가가 없습니다.</div>
+    </div>
+  <% else %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>상호</th>
+                <th>대표자</th>
+                <th>연락처</th>
+                <th>재고</th>
+                <th>알림 방식</th>
+                <th>승인 방식</th>
+                <th>계좌</th>
+                <th class="text-right">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @farmers.each do |farmer| %>
+                <tr>
+                  <td class="font-medium"><%= farmer.business_name %></td>
+                  <td><%= farmer.owner_name %></td>
+                  <td><%= farmer.phone %></td>
+                  <td><%= farmer.stock_quantity %></td>
+                  <td>
+                    <span class="badge badge-sm <%= farmer.notification_method == 'kakao' ? 'badge-warning' : 'badge-info' %>">
+                      <%= farmer.notification_method %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-sm <%= farmer.approval_mode == 'manual' ? 'badge-primary' : 'badge-success' %>">
+                      <%= farmer.approval_mode == 'manual' ? '수동' : '자동' %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="text-sm"><%= farmer.masked_account_info.presence || "-" %></div>
+                    <%= link_to "전체 보기",
+                                account_info_admin_farmer_path(farmer),
+                                data: { turbo_frame: "account_info_modal" },
+                                class: "link link-primary text-xs" %>
+                  </td>
+                  <td class="text-right">
+                    <div class="flex gap-2 justify-end">
+                      <%= link_to "보기", admin_farmer_path(farmer), class: "btn btn-ghost btn-xs" %>
+                      <%= link_to "수정", edit_admin_farmer_path(farmer), class: "btn btn-primary btn-xs" %>
+                      <%= link_to "삭제",
+                                  admin_farmer_path(farmer),
+                                  data: { turbo_method: :delete, turbo_confirm: "정말 삭제할까요?" },
+                                  class: "btn btn-error btn-xs" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
 
 <turbo-frame id="account_info_modal"></turbo-frame>

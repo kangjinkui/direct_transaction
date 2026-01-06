@@ -1,107 +1,132 @@
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold">Admin Dashboard</h1>
-    <p class="text-sm text-gray-600">Monitor unanswered orders, payment queues, and today's metrics.</p>
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">관리자 대시보드</h1>
+      <p class="text-sm text-base-content/70">미응답 주문과 입금 대기 현황을 빠르게 확인합니다.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "주문 관리", admin_orders_path, class: "btn btn-primary btn-sm" %>
+      <%= link_to "입금 대기", admin_payments_path, class: "btn btn-ghost btn-sm" %>
+    </div>
   </div>
-  <%= link_to "View Orders", admin_orders_path, class: "bg-blue-600 text-white px-4 py-2 rounded text-sm" %>
-</div>
 
-<div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-  <div class="p-4 bg-white border border-gray-200 rounded shadow-sm">
-    <div class="text-sm text-gray-500">Orders Today</div>
-    <div class="text-2xl font-semibold"><%= @stats[:orders_today] %></div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <p class="text-sm text-base-content/70">오늘 주문 수</p>
+        <p class="text-3xl font-bold"><%= @stats[:orders_today] %>건</p>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <p class="text-sm text-base-content/70">오늘 주문 금액</p>
+        <p class="text-3xl font-bold">
+          <%= number_to_currency(@stats[:amount_today] / 100.0, unit: "", precision: 0) %>원
+        </p>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <p class="text-sm text-base-content/70">오늘 완료 건수</p>
+        <p class="text-3xl font-bold"><%= @stats[:completed_today] %>건</p>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <p class="text-sm text-base-content/70">입금 대기</p>
+        <p class="text-3xl font-bold"><%= @stats[:payment_pending_count] %>건</p>
+      </div>
+    </div>
   </div>
-  <div class="p-4 bg-white border border-gray-200 rounded shadow-sm">
-    <div class="text-sm text-gray-500">Amount Today</div>
-    <div class="text-2xl font-semibold"><%= number_to_currency(@stats[:amount_today], unit: "₩", precision: 0) %></div>
-  </div>
-  <div class="p-4 bg-white border border-gray-200 rounded shadow-sm">
-    <div class="text-sm text-gray-500">Completed Today</div>
-    <div class="text-2xl font-semibold"><%= @stats[:completed_today] %></div>
-  </div>
-  <div class="p-4 bg-white border border-gray-200 rounded shadow-sm">
-    <div class="text-sm text-gray-500">Pending Payments</div>
-    <div class="text-2xl font-semibold"><%= @stats[:payment_pending_count] %></div>
-  </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <section class="bg-white border border-gray-200 rounded shadow-sm">
-    <header class="flex items-center justify-between px-4 py-3 border-b">
-      <div>
-        <h2 class="text-lg font-semibold">Unanswered Orders</h2>
-        <p class="text-xs text-gray-500">farmer_review status with timeout approaching</p>
-      </div>
-      <span class="inline-flex items-center px-2 py-1 text-xs bg-amber-100 text-amber-800 rounded-full">
-        <%= @stats[:farmer_review_count] %> open
-      </span>
-    </header>
-    <% if @farmer_review_orders.empty? %>
-      <p class="px-4 py-6 text-sm text-gray-500">No unanswered orders in the next 2 hours.</p>
-    <% else %>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-left">
-            <tr>
-              <th class="px-4 py-2 border-b">Order #</th>
-              <th class="px-4 py-2 border-b">Farmer</th>
-              <th class="px-4 py-2 border-b">Customer</th>
-              <th class="px-4 py-2 border-b">Timeout</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @farmer_review_orders.each do |order| %>
-              <% timed_out = order.timeout_at.present? && order.timeout_at <= Time.current %>
-              <tr class="<%= timed_out ? 'bg-red-50' : '' %>">
-                <td class="px-4 py-2 border-b font-mono text-xs"><%= order.order_number %></td>
-                <td class="px-4 py-2 border-b"><%= order.farmer&.business_name %></td>
-                <td class="px-4 py-2 border-b"><%= order.user&.name %></td>
-                <td class="px-4 py-2 border-b"><%= order.timeout_at ? l(order.timeout_at, format: :short) : "-" %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% end %>
-  </section>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <section class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">미응답 주문</h2>
+            <p class="text-sm text-base-content/70">농가 검토 중이며 2시간 내 만료 대상</p>
+          </div>
+          <div class="badge badge-warning"><%= @stats[:farmer_review_count] %>건</div>
+        </div>
 
-  <section class="bg-white border border-gray-200 rounded shadow-sm">
-    <header class="flex items-center justify-between px-4 py-3 border-b">
-      <div>
-        <h2 class="text-lg font-semibold">Payment Pending</h2>
-        <p class="text-xs text-gray-500">Orders awaiting transfer verification</p>
+        <% if @farmer_review_orders.empty? %>
+          <div class="py-6 text-sm text-base-content/70">임박한 미응답 주문이 없습니다.</div>
+        <% else %>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>주문번호</th>
+                  <th>농가</th>
+                  <th>고객</th>
+                  <th>타임아웃</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @farmer_review_orders.each do |order| %>
+                  <% timed_out = order.timeout_at.present? && order.timeout_at <= Time.current %>
+                  <tr class="<%= timed_out ? 'bg-error/10' : '' %>">
+                    <td class="font-mono text-xs"><%= order.order_number %></td>
+                    <td><%= order.farmer&.business_name %></td>
+                    <td><%= order.user&.name %></td>
+                    <td><%= order.timeout_at ? l(order.timeout_at, format: :short) : "-" %></td>
+                    <td class="text-right">
+                      <%= link_to "보기", admin_order_path(order), class: "btn btn-ghost btn-xs" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
       </div>
-      <span class="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-        <%= @stats[:payment_pending_count] %> open
-      </span>
-    </header>
-    <% if @payment_pending_orders.empty? %>
-      <p class="px-4 py-6 text-sm text-gray-500">No payment pending orders.</p>
-    <% else %>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 text-left">
-            <tr>
-              <th class="px-4 py-2 border-b">Order #</th>
-              <th class="px-4 py-2 border-b">Farmer</th>
-              <th class="px-4 py-2 border-b">Customer</th>
-              <th class="px-4 py-2 border-b">Amount</th>
-              <th class="px-4 py-2 border-b">Requested At</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @payment_pending_orders.each do |order| %>
-              <tr>
-                <td class="px-4 py-2 border-b font-mono text-xs"><%= order.order_number %></td>
-                <td class="px-4 py-2 border-b"><%= order.farmer&.business_name %></td>
-                <td class="px-4 py-2 border-b"><%= order.user&.name %></td>
-                <td class="px-4 py-2 border-b"><%= number_to_currency(order.total_amount, unit: "₩", precision: 0) %></td>
-                <td class="px-4 py-2 border-b"><%= l(order.created_at, format: :short) %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+    </section>
+
+    <section class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">입금 대기</h2>
+            <p class="text-sm text-base-content/70">입금 확인이 필요한 주문</p>
+          </div>
+          <div class="badge badge-info"><%= @stats[:payment_pending_count] %>건</div>
+        </div>
+
+        <% if @payment_pending_orders.empty? %>
+          <div class="py-6 text-sm text-base-content/70">입금 대기 주문이 없습니다.</div>
+        <% else %>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>주문번호</th>
+                  <th>농가</th>
+                  <th>고객</th>
+                  <th>금액</th>
+                  <th>요청일</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @payment_pending_orders.each do |order| %>
+                  <tr>
+                    <td class="font-mono text-xs"><%= order.order_number %></td>
+                    <td><%= order.farmer&.business_name %></td>
+                    <td><%= order.user&.name %></td>
+                    <td><%= number_to_currency(order.total_amount / 100.0, unit: "", precision: 0) %>원</td>
+                    <td><%= l(order.created_at, format: :short) %></td>
+                    <td class="text-right">
+                      <%= link_to "보기", admin_order_path(order), class: "btn btn-ghost btn-xs" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
       </div>
-    <% end %>
-  </section>
+    </section>
+  </div>
 </div>

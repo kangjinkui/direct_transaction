@@ -18,12 +18,25 @@ Rails.application.routes.draw do
     resources :payments, only: [:index] do
       post :verify, on: :member
     end
-    resources :orders, only: [:index] do
+    resources :orders, only: [:index, :show] do
       member do
         post :confirm
         post :cancel
+        patch :update_note
       end
     end
+  end
+
+  namespace :farmers do
+    resource :dashboard, only: :show
+    resources :products
+    resources :orders, only: [:index, :show] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
+    resource :profile, only: [:show, :edit, :update]
   end
   get "home/index"
   resource :admin_otp, only: %i[new create]

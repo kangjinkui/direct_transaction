@@ -25,6 +25,10 @@ class Product < ApplicationRecord
     is_available && stock_quantity.to_i.positive? && stock_status != "sold_out"
   end
 
+  def image_url
+    nil
+  end
+
   private
 
   def ensure_sku

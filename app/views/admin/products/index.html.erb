@@ -1,59 +1,85 @@
-<div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-semibold">상품 관리</h1>
-  <%= link_to "상품 추가", new_admin_product_path, class: "bg-blue-600 text-white px-4 py-2 rounded text-sm" %>
-</div>
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">상품 관리</h1>
+      <p class="text-sm text-base-content/70">상품 정보와 재고를 관리합니다.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "상품 추가", new_admin_product_path, class: "btn btn-primary btn-sm" %>
+      <%= link_to "관리자 대시보드", admin_dashboard_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </div>
 
-<% if @products.empty? %>
-  <p class="text-gray-600">등록된 상품이 없습니다.</p>
-<% else %>
-  <table class="min-w-full border border-gray-200 text-sm bg-white">
-    <thead>
-      <tr class="bg-gray-50 text-left">
-        <th class="px-3 py-2 border">상품명</th>
-        <th class="px-3 py-2 border">농가</th>
-        <th class="px-3 py-2 border">가격</th>
-        <th class="px-3 py-2 border">재고</th>
-        <th class="px-3 py-2 border">상태</th>
-        <th class="px-3 py-2 border">판매 여부</th>
-        <th class="px-3 py-2 border">관리</th>
-        <th class="px-3 py-2 border">재고 수정</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @products.each do |product| %>
-        <tr>
-          <td class="px-3 py-2 border font-medium"><%= product.name %></td>
-          <td class="px-3 py-2 border"><%= product.farmer&.business_name || "-" %></td>
-          <td class="px-3 py-2 border"><%= number_to_currency(product.price, unit: "₩", precision: 0) %></td>
-          <td class="px-3 py-2 border"><%= product.stock_quantity %></td>
-          <td class="px-3 py-2 border"><%= product.stock_status %></td>
-          <td class="px-3 py-2 border"><%= product.is_available? ? "판매중" : "중지" %></td>
-          <td class="px-3 py-2 border space-x-2 whitespace-nowrap">
-            <%= link_to "보기", admin_product_path(product), class: "text-blue-600 hover:underline text-sm" %>
-            <%= link_to "수정", edit_admin_product_path(product), class: "text-blue-600 hover:underline text-sm" %>
-            <%= link_to "삭제",
-                        admin_product_path(product),
-                        data: { turbo_method: :delete, turbo_confirm: "정말 삭제할까요?" },
-                        class: "text-red-600 hover:underline text-sm" %>
-          </td>
-          <td class="px-3 py-2 border">
-            <%= form_with(model: [:admin, product],
-                          url: update_stock_admin_product_path(product),
-                          method: :patch,
-                          local: true,
-                          class: "flex flex-col gap-2 md:flex-row md:items-center") do |f| %>
-              <%= f.number_field :stock_quantity,
-                                 value: product.stock_quantity,
-                                 class: "border rounded px-2 py-1 text-sm w-24" %>
-              <%= f.select :stock_status,
-                           Product.stock_statuses.keys.map { |status| [status.humanize, status] },
-                           {},
-                           class: "border rounded px-2 py-1 text-sm" %>
-              <%= f.submit "저장", class: "bg-gray-800 text-white px-3 py-1 rounded text-sm" %>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% end %>
+  <% if @products.empty? %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body text-sm text-base-content/70">등록된 상품이 없습니다.</div>
+    </div>
+  <% else %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>상품명</th>
+                <th>농가</th>
+                <th>가격</th>
+                <th>재고</th>
+                <th>상태</th>
+                <th>판매 여부</th>
+                <th class="text-right">관리</th>
+                <th>재고 수정</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @products.each do |product| %>
+                <tr>
+                  <td class="font-medium"><%= product.name %></td>
+                  <td><%= product.farmer&.business_name || "-" %></td>
+                  <td><%= number_to_currency(product.price, unit: "", precision: 0) %>원</td>
+                  <td><%= product.stock_quantity %></td>
+                  <td>
+                    <span class="badge badge-sm <%= product.stock_status == 'available' ? 'badge-success' : 'badge-error' %>">
+                      <%= product.stock_status %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-sm <%= product.is_available? ? 'badge-success' : 'badge-ghost' %>">
+                      <%= product.is_available? ? "판매중" : "중지" %>
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <div class="flex gap-2 justify-end">
+                      <%= link_to "보기", admin_product_path(product), class: "btn btn-ghost btn-xs" %>
+                      <%= link_to "수정", edit_admin_product_path(product), class: "btn btn-primary btn-xs" %>
+                      <%= link_to "삭제",
+                                  admin_product_path(product),
+                                  data: { turbo_method: :delete, turbo_confirm: "정말 삭제할까요?" },
+                                  class: "btn btn-error btn-xs" %>
+                    </div>
+                  </td>
+                  <td>
+                    <%= form_with(model: [:admin, product],
+                                  url: update_stock_admin_product_path(product),
+                                  method: :patch,
+                                  local: true,
+                                  class: "flex flex-col gap-2 lg:flex-row lg:items-center") do |f| %>
+                      <%= f.number_field :stock_quantity,
+                                         value: product.stock_quantity,
+                                         class: "input input-bordered input-xs w-24" %>
+                      <%= f.select :stock_status,
+                                   Product.stock_statuses.keys.map { |status| [status.humanize, status] },
+                                   {},
+                                   class: "select select-bordered select-xs" %>
+                      <%= f.submit "저장", class: "btn btn-primary btn-xs" %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

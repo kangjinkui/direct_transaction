@@ -1,51 +1,67 @@
-<h1 class="text-xl font-bold mb-4">입금 대기 목록</h1>
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">입금 대기</h1>
+      <p class="text-sm text-base-content/70">소비자 입금 신고 내역을 확인하고 승인합니다.</p>
+    </div>
+    <%= link_to "관리자 대시보드", admin_dashboard_path, class: "btn btn-primary btn-sm" %>
+  </div>
 
-<% if @payments.empty? %>
-  <p>입금 대기 중인 항목이 없습니다.</p>
-<% else %>
-  <table class="min-w-full border border-gray-200 text-sm">
-    <thead>
-      <tr class="bg-gray-50">
-        <th class="border px-3 py-2 text-left">주문번호</th>
-        <th class="border px-3 py-2 text-left">금액</th>
-        <th class="border px-3 py-2 text-left">상태</th>
-        <th class="border px-3 py-2 text-left">주문 상태</th>
-        <th class="border px-3 py-2 text-left">참고</th>
-        <th class="border px-3 py-2 text-left">계좌 정보</th>
-        <th class="border px-3 py-2 text-left">액션</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @payments.each do |payment| %>
-        <tr>
-          <td class="border px-3 py-2"><%= payment.order.order_number %></td>
-          <td class="border px-3 py-2"><%= number_to_currency(payment.amount, unit: "₩", precision: 0) %></td>
-          <td class="border px-3 py-2"><%= payment.status %></td>
-          <td class="border px-3 py-2"><%= payment.order.status %></td>
-          <td class="border px-3 py-2"><%= payment.reference || "-" %></td>
-          <td class="border px-3 py-2 space-y-1">
-            <div class="text-sm"><%= payment.order.farmer.masked_account_info.presence || "-" %></div>
-            <%= link_to "전체 보기",
-                        account_info_admin_farmer_path(payment.order.farmer),
-                        data: { turbo_frame: "account_info_modal" },
-                        class: "inline-flex items-center text-xs text-blue-600 hover:underline" %>
-          </td>
-          <td class="border px-3 py-2">
-            <%= form_with url: verify_admin_payment_path(payment), method: :post, local: true, class: "flex flex-col gap-2 md:flex-row md:items-center" do |f| %>
-              <%= f.select :verification_method,
-                           options_for_select([["전화 확인", :phone_call], ["문자 확인", :sms]]),
-                           { prompt: "확인 수단" },
-                           class: "border rounded px-2 py-1 text-sm" %>
-              <%= f.text_field :admin_note,
-                               placeholder: "예: 1/15 전화 확인",
-                               class: "border rounded px-2 py-1 text-sm flex-1" %>
-              <%= f.submit "입금 확인", class: "bg-green-600 text-white px-3 py-1 rounded text-sm" %>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% end %>
+  <% if @payments.empty? %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body text-sm text-base-content/70">입금 대기 중인 주문이 없습니다.</div>
+    </div>
+  <% else %>
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>주문번호</th>
+                <th>금액</th>
+                <th>입금 상태</th>
+                <th>주문 상태</th>
+                <th>참고</th>
+                <th>계좌 정보</th>
+                <th class="text-right">승인</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @payments.each do |payment| %>
+                <tr>
+                  <td class="font-mono text-xs"><%= payment.order.order_number %></td>
+                  <td><%= number_to_currency(payment.amount / 100.0, unit: "", precision: 0) %>원</td>
+                  <td><%= payment.status %></td>
+                  <td><%= payment.order.status %></td>
+                  <td><%= payment.reference.presence || "-" %></td>
+                  <td class="space-y-1">
+                    <div class="text-sm"><%= payment.order.farmer.masked_account_info.presence || "-" %></div>
+                    <%= link_to "전체 보기",
+                                account_info_admin_farmer_path(payment.order.farmer),
+                                data: { turbo_frame: "account_info_modal" },
+                                class: "link link-primary text-xs" %>
+                  </td>
+                  <td class="text-right">
+                    <%= form_with url: verify_admin_payment_path(payment), method: :post, local: true, class: "flex flex-col gap-2 md:flex-row md:items-center md:justify-end" do |f| %>
+                      <%= f.select :verification_method,
+                                   options_for_select([["전화 확인", :phone_call], ["문자 확인", :sms]]),
+                                   { prompt: "확인 수단" },
+                                   class: "select select-bordered select-sm" %>
+                      <%= f.text_field :admin_note,
+                                       placeholder: "예: 1/15 전화 확인",
+                                       class: "input input-bordered input-sm md:w-56" %>
+                      <%= f.submit "입금 확인", class: "btn btn-success btn-sm" %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
-<turbo-frame id="account_info_modal"></turbo-frame>
+  <turbo-frame id="account_info_modal"></turbo-frame>
+</div>

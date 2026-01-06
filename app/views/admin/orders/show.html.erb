@@ -1,0 +1,213 @@
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">주문 상세</h1>
+      <p class="text-sm text-base-content/70">주문번호: <span class="font-mono"><%= @order.order_number %></span></p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "주문 목록", admin_orders_path(scope: params[:scope]), class: "btn btn-ghost btn-sm" %>
+      <%= link_to "입금 대기", admin_payments_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm text-base-content/70">주문 상태</p>
+              <div class="mt-2"><%= render BadgeComponent.new(status: @order.status) %></div>
+            </div>
+            <div class="text-sm text-base-content/70">
+              주문일시: <%= l(@order.created_at, format: :long) %>
+            </div>
+          </div>
+
+          <% if @order.may_confirm_order? || @order.may_submit_for_review? || @order.may_cancel_order? %>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <% if @order.may_confirm_order? || @order.may_submit_for_review? %>
+                <%= button_to "대리 승인",
+                              confirm_admin_order_path(@order, scope: params[:scope]),
+                              method: :post,
+                              class: "btn btn-primary btn-sm" %>
+              <% end %>
+              <% if @order.may_cancel_order? %>
+                <%= button_to "대리 취소",
+                              cancel_admin_order_path(@order, scope: params[:scope]),
+                              method: :post,
+                              form: { data: { turbo_confirm: "정말 취소할까요?" } },
+                              class: "btn btn-error btn-sm" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">주문 상품</h2>
+          <div class="space-y-3">
+            <% @order.order_items.each do |item| %>
+              <div class="flex items-center justify-between border-b border-base-200 pb-3 last:border-0 last:pb-0">
+                <div>
+                  <p class="font-medium"><%= item.product.name %></p>
+                  <p class="text-sm text-base-content/70">
+                    <%= number_to_currency(item.unit_price / 100.0, unit: "", precision: 0) %>원 × <%= item.quantity %>개
+                  </p>
+                </div>
+                <p class="font-bold text-primary">
+                  <%= number_to_currency(item.subtotal / 100.0, unit: "", precision: 0) %>원
+                </p>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="divider"></div>
+          <div class="flex justify-between text-lg font-bold">
+            <span>총 결제 금액</span>
+            <span><%= number_to_currency(@order.total_amount / 100.0, unit: "", precision: 0) %>원</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">배송지 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div><span class="text-base-content/70">받는 분:</span> <%= @order.shipping_name %></div>
+            <div><span class="text-base-content/70">연락처:</span> <%= @order.shipping_phone %></div>
+            <% if @order.shipping_zip_code.present? %>
+              <div><span class="text-base-content/70">우편번호:</span> <%= @order.shipping_zip_code %></div>
+            <% end %>
+            <div><span class="text-base-content/70">주소:</span> <%= @order.shipping_address %></div>
+            <% if @order.delivery_memo.present? %>
+              <div><span class="text-base-content/70">배송 메모:</span> <%= @order.delivery_memo %></div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">주문 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div><span class="text-base-content/70">농가:</span> <%= @order.farmer.business_name %></div>
+            <div><span class="text-base-content/70">고객:</span> <%= @order.user.name %></div>
+            <div><span class="text-base-content/70">타임아웃:</span> <%= @order.timeout_at ? l(@order.timeout_at, format: :short) : "-" %></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">입금 확인</h2>
+          <% if @order.payment&.pending? %>
+            <p class="text-sm text-base-content/70 mb-3">입금 확인 수단과 메모를 입력하세요.</p>
+            <%= form_with url: verify_admin_payment_path(@order.payment), method: :post, local: true, class: "space-y-3" do |f| %>
+              <%= f.select :verification_method,
+                           options_for_select([["전화 확인", :phone_call], ["문자 확인", :sms]]),
+                           { prompt: "확인 수단" },
+                           class: "select select-bordered select-sm w-full" %>
+              <%= f.text_field :admin_note,
+                               placeholder: "예: 1/15 전화 확인",
+                               class: "input input-bordered input-sm w-full" %>
+              <%= f.submit "입금 확인", class: "btn btn-success btn-sm w-full" %>
+            <% end %>
+          <% else %>
+            <p class="text-sm text-base-content/70">입금 대기 상태가 아닙니다.</p>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">계좌 정보</h2>
+          <div class="text-sm">
+            <p class="mb-2"><%= @order.farmer.masked_account_info.presence || "-" %></p>
+            <%= link_to "전체 보기",
+                        account_info_admin_farmer_path(@order.farmer),
+                        data: { turbo_frame: "account_info_modal" },
+                        class: "link link-primary text-xs" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <h2 class="card-title">관리자 메모</h2>
+            <span class="text-xs text-base-content/60" data-admin-note-status></span>
+          </div>
+          <%= form_with model: @order,
+                        url: update_note_admin_order_path(@order),
+                        method: :patch,
+                        local: true,
+                        data: { admin_note_form: true },
+                        class: "space-y-3" do |f| %>
+            <%= f.text_area :admin_note,
+                            value: @order.admin_note,
+                            placeholder: "주문 관련 특이사항을 기록하세요.",
+                            class: "textarea textarea-bordered w-full h-32",
+                            data: { admin_note_field: true } %>
+          <% end %>
+
+          <% if @order.admin_note_history.present? %>
+            <div class="divider"></div>
+            <div class="space-y-2 text-sm">
+              <% @order.admin_note_history.last(5).reverse_each do |entry| %>
+                <div class="p-3 bg-base-200 rounded">
+                  <p class="whitespace-pre-line"><%= entry["note"].presence || "-" %></p>
+                  <p class="text-xs text-base-content/60 mt-1">
+                    <%= l(Time.zone.parse(entry["updated_at"].to_s), format: :short) rescue entry["updated_at"] %>
+                  </p>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <turbo-frame id="account_info_modal"></turbo-frame>
+</div>
+
+<script>
+  (() => {
+    const form = document.querySelector("[data-admin-note-form]");
+    const field = document.querySelector("[data-admin-note-field]");
+    const status = document.querySelector("[data-admin-note-status]");
+    if (!form || !field || !status) return;
+
+    let timer = null;
+    const updateStatus = (text) => {
+      status.textContent = text;
+    };
+
+    field.addEventListener("input", () => {
+      updateStatus("저장 중...");
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const csrfToken = document.querySelector("meta[name=csrf-token]")?.content;
+        const payload = new URLSearchParams(new FormData(form));
+        fetch(form.action, {
+          method: "PATCH",
+          headers: {
+            "X-CSRF-Token": csrfToken,
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: payload.toString()
+        }).then((response) => {
+          if (!response.ok) throw new Error("save failed");
+          updateStatus("저장 완료");
+        }).catch(() => {
+          updateStatus("저장 실패");
+        });
+      }, 700);
+    });
+  })();
+</script>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html data-theme="nongsa">
+  <head>
+    <title><%= content_for(:title) || "농가 대시보드 - Myapp" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Google Fonts - Noto Sans KR %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <%# Tailwind output + any legacy styles %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+  </head>
+
+  <body class="min-h-screen bg-base-200">
+    <!-- Header -->
+    <header class="navbar bg-base-100 shadow-md sticky top-0 z-50 px-4">
+      <div class="navbar-start">
+        <div class="dropdown lg:hidden">
+          <label tabindex="0" class="btn btn-ghost btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+            <li><%= link_to "대시보드", farmers_dashboard_path %></li>
+            <li><%= link_to "주문 관리", farmers_orders_path %></li>
+            <li><%= link_to "상품 관리", farmers_products_path %></li>
+            <li><%= link_to "프로필", farmers_profile_path %></li>
+          </ul>
+        </div>
+        <%= link_to farmers_dashboard_path, class: "btn btn-ghost text-xl" do %>
+          <span class="text-primary">농가</span> 대시보드
+        <% end %>
+      </div>
+
+      <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal px-1">
+          <li><%= link_to "대시보드", farmers_dashboard_path %></li>
+          <li><%= link_to "주문 관리", farmers_orders_path %></li>
+          <li><%= link_to "상품 관리", farmers_products_path %></li>
+        </ul>
+      </div>
+
+      <div class="navbar-end gap-2">
+        <% if user_signed_in? %>
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-circle avatar placeholder">
+              <div class="bg-primary text-primary-content rounded-full w-10">
+                <span class="text-sm"><%= current_user.name&.first || 'F' %></span>
+              </div>
+            </label>
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+              <li class="menu-title"><%= current_farmer&.business_name || current_user.name %></li>
+              <li><%= link_to "프로필 설정", farmers_profile_path %></li>
+              <li><%= link_to "소비자 홈", root_path %></li>
+              <li><%= button_to "로그아웃", destroy_user_session_path, method: :delete, class: "text-error" %></li>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <% if flash.any? %>
+      <div class="page-container py-4" id="flash-container">
+        <% flash.each do |type, message| %>
+          <div class="alert <%= type == 'notice' || type == 'success' ? 'alert-success' : 'alert-error' %> shadow-lg mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span><%= message %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Main Content -->
+    <main>
+      <%= yield %>
+    </main>
+
+    <script>
+      (() => {
+        const container = document.getElementById("flash-container");
+        if (!container) return;
+        window.setTimeout(() => {
+          container.classList.add("opacity-0");
+          container.classList.add("transition-opacity");
+          window.setTimeout(() => container.remove(), 300);
+        }, 3000);
+      })();
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-100 text-base-content mt-auto">
+      <aside>
+        <p class="font-bold text-lg">
+          <span class="text-primary">농가</span> 대시보드
+        </p>
+        <p>농산물 직거래 플랫폼</p>
+        <p class="text-sm opacity-60">© 2026 농산물직거래. All rights reserved.</p>
+      </aside>
+    </footer>
+  </body>
+</html>

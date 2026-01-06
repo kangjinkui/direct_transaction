@@ -164,4 +164,28 @@ RSpec.describe "Admin::Orders", type: :request do
       expect(response).to have_http_status(:forbidden)
     end
   end
+
+  describe "PATCH /admin/orders/:id/update_note" do
+    it "updates admin note and history for admin" do
+      order = create(:order, status: :farmer_review)
+      sign_in admin, scope: :user
+
+      patch update_note_admin_order_path(order), params: { order: { admin_note: "??? ??" } }
+
+      expect(response).to redirect_to(admin_order_path(order))
+      order.reload
+      expect(order.admin_note).to eq("??? ??")
+      expect(order.admin_note_history.last["note"]).to eq("??? ??")
+    end
+
+    it "forbids non-admin" do
+      order = create(:order, status: :farmer_review)
+      sign_in user, scope: :user
+
+      patch update_note_admin_order_path(order), params: { order: { admin_note: "??" } }
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
 end

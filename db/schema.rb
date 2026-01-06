@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_05_121500) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_06_150001) do
   create_table "admin_otp_challenges", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "code", null: false
@@ -49,9 +49,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_05_121500) do
     t.integer "stock_quantity", default: 0, null: false
     t.text "encrypted_account_info", default: "", null: false
     t.string "encrypted_account_info_iv", default: "", null: false
+    t.integer "user_id"
     t.index ["approval_mode"], name: "index_farmers_on_approval_mode"
     t.index ["farmer_type"], name: "index_farmers_on_farmer_type"
     t.index ["phone"], name: "index_farmers_on_phone", unique: true
+    t.index ["user_id"], name: "index_farmers_on_user_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -132,6 +134,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_05_121500) do
     t.string "shipping_address", default: "", null: false
     t.string "shipping_zip_code"
     t.text "delivery_memo"
+    t.text "admin_note"
+    t.json "admin_note_history", default: [], null: false
+    t.datetime "admin_note_updated_at"
     t.index ["farmer_id"], name: "index_orders_on_farmer_id"
     t.index ["last_status_changed_by_type", "last_status_changed_by_id"], name: "index_orders_on_last_status_changed_by"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
@@ -216,6 +221,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_05_121500) do
   add_foreign_key "admin_otp_challenges", "users"
   add_foreign_key "cart_items", "products"
   add_foreign_key "cart_items", "users"
+  add_foreign_key "farmers", "users"
   add_foreign_key "notifications", "farmers"
   add_foreign_key "notifications", "orders"
   add_foreign_key "order_approval_tokens", "orders"

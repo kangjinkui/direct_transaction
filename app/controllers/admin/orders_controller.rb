@@ -4,7 +4,7 @@ module Admin
   class OrdersController < ApplicationController
     before_action :require_admin!
     before_action :set_filters
-    before_action :set_order, only: %i[confirm cancel]
+    before_action :set_order, only: %i[show confirm cancel update_note]
 
     def index
       now = Time.current
@@ -16,7 +16,7 @@ module Admin
         payment_pending: Order.where(status: :payment_pending).count,
         timed_out: Order.where(status: %i[farmer_review payment_pending]).where("timeout_at <= ?", now).count
       }
-      @summary = summary_stats(now:)
+      @summary = summary_stats(now: now)
       @now = now
 
       respond_to do |format|
@@ -25,7 +25,7 @@ module Admin
           render json: {
             stats: @stats,
             summary: @summary,
-            data: @orders.map { |order| order_json(order, now:) }
+            data: @orders.map { |order| order_json(order, now: now) }
           }
         end
         format.csv do
@@ -36,9 +36,39 @@ module Admin
       end
     end
 
+    def show
+      @order = Order.includes(:farmer, :user, :payment, order_items: :product).find(params[:id])
+    end
+
+    def update_note
+      note = params.require(:order).fetch(:admin_note, "").strip
+      history = @order.admin_note_history || []
+
+      if note != @order.admin_note
+        history << {
+          note: note,
+          previous_note: @order.admin_note,
+          updated_at: Time.current,
+          updated_by_id: current_user.id
+        }
+      end
+
+      if @order.update(admin_note: note, admin_note_history: history, admin_note_updated_at: Time.current)
+        respond_to do |format|
+          format.html { redirect_to admin_order_path(@order), notice: "관리자 메모가 저장되었습니다." }
+          format.json { render json: { status: :ok, updated_at: @order.admin_note_updated_at }, status: :ok }
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to admin_order_path(@order), alert: "관리자 메모 저장에 실패했습니다." }
+          format.json { render json: { status: :error, errors: @order.errors.full_messages }, status: :unprocessable_entity }
+        end
+      end
+    end
+
     def confirm
       result = AdminOrderActionService.new(@order, actor: current_user).confirm_with_stock!
-      respond_to_action(result, success_message: "주문을 확인했습니다.")
+      respond_to_action(result, success_message: "주문을 승인했습니다.")
     end
 
     def cancel
@@ -63,7 +93,7 @@ module Admin
       end
     end
 
-    def order_json(order, now:)
+    def order_json(order, now: Time.current)
       timed_out = order.timeout_at && order.timeout_at <= now
       imminent = !timed_out && order.timeout_at && order.timeout_at <= now + 2.hours
       {
@@ -101,7 +131,7 @@ module Admin
       @order = Order.find(params[:id])
     end
 
-    def summary_stats(now:)
+    def summary_stats(now: Time.current)
       today = now.beginning_of_day..now.end_of_day
       orders_today = Order.where(created_at: today)
       {

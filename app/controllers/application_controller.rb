@@ -39,6 +39,20 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def require_farmer!
+    return if current_user&.farmer?
+
+    respond_to do |format|
+      format.html { redirect_to root_path, alert: "농가 전용 페이지입니다." }
+      format.json { head :forbidden }
+    end
+  end
+
+  def current_farmer
+    @current_farmer ||= current_user&.farmer_profile
+  end
+  helper_method :current_farmer
+
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: %i[name phone address role])
     devise_parameter_sanitizer.permit(:account_update, keys: %i[name phone address role])

@@ -3,7 +3,7 @@ module Admin
     before_action :require_admin!
 
     def index
-      @payments = Payment.includes(:order).where(status: :pending).order(created_at: :desc)
+      @payments = Payment.includes(order: %i[farmer user]).where(status: :pending).order(created_at: :desc)
       respond_to do |format|
         format.html
         format.json do
@@ -28,14 +28,14 @@ module Admin
 
       result = PaymentService.new(payment.order, actor: current_user).verify!(
         verified_at: Time.current,
-        admin_note:,
-        verification_method:
+        admin_note: admin_note,
+        verification_method: verification_method
       )
 
       respond_to do |format|
         if result.status == :completed
           format.html do
-            redirect_to admin_payments_path, notice: "입금을 확인했습니다."
+            redirect_to admin_payments_path, notice: "입금 확인이 완료되었습니다."
           end
           format.json do
             render json: {
