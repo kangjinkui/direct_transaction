@@ -35,8 +35,6 @@ class User < ApplicationRecord
 
   after_create :create_farmer_profile_if_farmer
 
-  private
-
   def create_farmer_profile_if_farmer
     return unless farmer?
     return if farmer_profile.present?
@@ -76,4 +74,6 @@ class User < ApplicationRecord
   def farmer?
     role == "farmer"
   end
+
+  private
 end

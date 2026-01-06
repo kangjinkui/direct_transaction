@@ -19,23 +19,53 @@ consumer = User.find_or_create_by!(email: "consumer@example.com") do |user|
   user.role = :user
 end
 
-puts "Seeding farmers..."
-farmer_attrs = [
-  { business_name: "Green Farm", owner_name: "Kim Farmer", phone: "+821011112222", farmer_type: :type_a },
-  { business_name: "Sunny Orchard", owner_name: "Lee Grower", phone: "+821033344455", farmer_type: :type_b }
-]
-
-farmers = farmer_attrs.map do |attrs|
-  Farmer.find_or_create_by!(phone: attrs[:phone]) do |farmer|
-    farmer.business_name = attrs[:business_name]
-    farmer.owner_name = attrs[:owner_name]
-    farmer.farmer_type = attrs[:farmer_type]
-    farmer.notification_method = attrs[:farmer_type] == :type_a ? :kakao : :auto
-    farmer.account_info = "국민은행 123-456-789012 김파머"
-    farmer.pin = "123456"
-    farmer.stock_quantity = 500
-  end
+puts "Seeding farmer users..."
+# 농가 로그인 계정 생성
+farmer_user_1 = User.find_or_create_by!(email: "farmer1@example.com") do |user|
+  user.name = "Green Farm"
+  user.password = "Password!1"
+  user.password_confirmation = "Password!1"
+  user.phone = "+821011112222"
+  user.role = :farmer
 end
+
+farmer_user_2 = User.find_or_create_by!(email: "farmer2@example.com") do |user|
+  user.name = "Sunny Orchard"
+  user.password = "Password!1"
+  user.password_confirmation = "Password!1"
+  user.phone = "+821033344455"
+  user.role = :farmer
+end
+
+puts "Updating farmer profiles..."
+# 농가 프로필 업데이트 (User 모델의 after_create로 자동 생성됨)
+if farmer_user_1.farmer_profile
+  farmer_user_1.farmer_profile.update!(
+    business_name: "Green Farm",
+    owner_name: "Kim Farmer",
+    farmer_type: :type_a,
+    approval_mode: :manual,
+    notification_method: :kakao,
+    account_info: "국민은행 123-456-789012 김파머",
+    pin: "123456",
+    stock_quantity: 500
+  )
+end
+
+if farmer_user_2.farmer_profile
+  farmer_user_2.farmer_profile.update!(
+    business_name: "Sunny Orchard",
+    owner_name: "Lee Grower",
+    farmer_type: :type_b,
+    approval_mode: :auto,
+    notification_method: :sms,
+    account_info: "농협 987-654-321098 이재배",
+    pin: "123456",
+    stock_quantity: 500
+  )
+end
+
+farmers = [farmer_user_1.farmer_profile, farmer_user_2.farmer_profile]
 
 puts "Seeding products..."
 farmers.each do |farmer|
@@ -61,7 +91,12 @@ sample_order = Order.find_or_create_by!(order_number: "ORD-SEED-001") do |order|
   order.farmer = sample_farmer
   order.total_amount = 70_000
   order.status = :pending
-  order.policy_snapshot = { "approval_mode" => sample_farmer.type_a? ? "manual" : "auto" }
+  order.shipping_name = consumer.name
+  order.shipping_phone = consumer.phone
+  order.shipping_address = consumer.address
+  order.shipping_zip_code = "12345"
+  order.delivery_memo = "문 앞에 놓아주세요"
+  order.policy_snapshot = { "approval_mode" => sample_farmer.approval_mode }
 end
 
 if sample_order.order_items.none?
@@ -79,4 +114,24 @@ Payment.find_or_create_by!(order: sample_order) do |payment|
   payment.payment_method = :manual_transfer
 end
 
-puts "Seed completed. Admin email: #{admin.email} / password: Password!1"
+puts "=" * 80
+puts "Seed completed!"
+puts "=" * 80
+puts "Admin:"
+puts "  Email: #{admin.email}"
+puts "  Password: Password!1"
+puts ""
+puts "Consumer:"
+puts "  Email: #{consumer.email}"
+puts "  Password: Password!1"
+puts ""
+puts "Farmer 1 (수동 승인):"
+puts "  Email: farmer1@example.com"
+puts "  Password: Password!1"
+puts "  Business: Green Farm"
+puts ""
+puts "Farmer 2 (자동 승인):"
+puts "  Email: farmer2@example.com"
+puts "  Password: Password!1"
+puts "  Business: Sunny Orchard"
+puts "=" * 80
