@@ -1,0 +1,125 @@
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">내 프로필</h1>
+      <p class="text-sm text-base-content/70">농가 정보를 확인하고 수정합니다</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "수정", edit_farmers_profile_path, class: "btn btn-primary btn-sm" %>
+      <%= link_to "대시보드", farmers_dashboard_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 기본 정보 -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">기본 정보</h2>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-base-content/70">상호명</p>
+            <p class="font-medium text-lg"><%= @farmer.business_name %></p>
+          </div>
+          <div>
+            <p class="text-sm text-base-content/70">대표자명</p>
+            <p class="font-medium"><%= @farmer.owner_name %></p>
+          </div>
+          <div>
+            <p class="text-sm text-base-content/70">연락처</p>
+            <p class="font-medium"><%= @farmer.phone %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 운영 설정 -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">운영 설정</h2>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-base-content/70">승인 방식</p>
+            <div class="mt-2">
+              <span class="badge <%= @farmer.approval_mode_manual? ? 'badge-primary' : 'badge-success' %>">
+                <%= @farmer.approval_mode_manual? ? '수동 승인' : '자동 승인' %>
+              </span>
+            </div>
+            <p class="text-xs text-base-content/60 mt-1">
+              <% if @farmer.approval_mode_manual? %>
+                주문이 들어오면 알림톡/SMS를 통해 승인/거절할 수 있습니다
+              <% else %>
+                재고가 충분하면 주문이 자동으로 승인됩니다
+              <% end %>
+            </p>
+          </div>
+
+          <div>
+            <p class="text-sm text-base-content/70">알림 방식</p>
+            <div class="mt-2">
+              <span class="badge <%= @farmer.notification_method == 'kakao' ? 'badge-warning' : 'badge-info' %>">
+                <%= @farmer.notification_method == 'kakao' ? '카카오 알림톡' : 'SMS' %>
+              </span>
+            </div>
+            <p class="text-xs text-base-content/60 mt-1">
+              <% if @farmer.notification_method == 'kakao' %>
+                카카오 알림톡으로 주문 알림을 받습니다 (실패 시 SMS)
+              <% else %>
+                SMS로 주문 알림을 받습니다
+              <% end %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 계좌 정보 -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">계좌 정보</h2>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-base-content/70">입금 계좌</p>
+            <% if @farmer.account_info.present? %>
+              <p class="font-medium font-mono"><%= @farmer.masked_account_info %></p>
+              <p class="text-xs text-base-content/60 mt-1">보안을 위해 일부만 표시됩니다</p>
+            <% else %>
+              <p class="text-base-content/60">등록된 계좌 정보가 없습니다</p>
+            <% end %>
+          </div>
+
+          <div class="alert alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm">고객이 주문 시 이 계좌 정보를 확인할 수 있습니다.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 통계 -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">활동 통계</h2>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-base-content/70">전체 상품</span>
+            <span class="font-bold text-lg"><%= @farmer.products.count %>개</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-base-content/70">판매 중 상품</span>
+            <span class="font-bold text-lg text-success"><%= @farmer.products.where(is_available: true).count %>개</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-base-content/70">전체 주문</span>
+            <span class="font-bold text-lg"><%= @farmer.orders.count %>건</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-base-content/70">완료된 주문</span>
+            <span class="font-bold text-lg text-success"><%= @farmer.orders.where(status: :completed).count %>건</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

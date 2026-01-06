@@ -33,6 +33,23 @@ class User < ApplicationRecord
 
   scope :admins, -> { where(role: %w[admin staff viewer]) }
 
+  after_create :create_farmer_profile_if_farmer
+
+  private
+
+  def create_farmer_profile_if_farmer
+    return unless farmer?
+    return if farmer_profile.present?
+
+    create_farmer_profile!(
+      business_name: name || "미설정",
+      owner_name: name || "미설정",
+      phone: phone || "미설정",
+      approval_mode: :manual,
+      notification_method: :kakao
+    )
+  end
+
   def needs_admin_otp?(window: 7.days)
     admin_like? && (last_otp_verified_at.nil? || last_otp_verified_at < window.ago)
   end

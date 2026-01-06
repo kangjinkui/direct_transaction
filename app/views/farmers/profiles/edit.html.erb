@@ -1,0 +1,106 @@
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">프로필 수정</h1>
+      <p class="text-sm text-base-content/70">농가 정보를 업데이트합니다</p>
+    </div>
+  </div>
+
+  <%= form_with model: @farmer, url: farmers_profile_path, method: :patch, class: "space-y-6" do |f| %>
+    <% if @farmer.errors.any? %>
+      <div class="alert alert-error">
+        <h3 class="font-bold">오류가 발생했습니다:</h3>
+        <ul class="list-disc list-inside">
+          <% @farmer.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">기본 정보</h2>
+
+        <div class="form-control">
+          <%= f.label :business_name, "상호명", class: "label" %>
+          <%= f.text_field :business_name, class: "input input-bordered", required: true %>
+        </div>
+
+        <div class="form-control">
+          <%= f.label :owner_name, "대표자명", class: "label" %>
+          <%= f.text_field :owner_name, class: "input input-bordered", required: true %>
+        </div>
+
+        <div class="form-control">
+          <%= f.label :phone, "연락처", class: "label" %>
+          <%= f.tel_field :phone, class: "input input-bordered", placeholder: "010-1234-5678", required: true %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">운영 설정</h2>
+
+        <div class="form-control">
+          <%= f.label :approval_mode, "승인 방식", class: "label" %>
+          <%= f.select :approval_mode,
+                       options_for_select([
+                         ['수동 승인 (알림톡/SMS로 직접 승인)', 'manual'],
+                         ['자동 승인 (재고 있으면 자동 승인)', 'auto']
+                       ], @farmer.approval_mode),
+                       {},
+                       class: "select select-bordered" %>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">
+              수동 승인: 주문마다 알림톡/SMS를 받아 승인/거절<br>
+              자동 승인: 재고가 있으면 자동으로 승인됨
+            </span>
+          </label>
+        </div>
+
+        <div class="form-control">
+          <%= f.label :notification_method, "알림 방식", class: "label" %>
+          <%= f.select :notification_method,
+                       options_for_select([
+                         ['카카오 알림톡 (실패 시 SMS)', 'kakao'],
+                         ['SMS만 사용', 'sms']
+                       ], @farmer.notification_method),
+                       {},
+                       class: "select select-bordered" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title">계좌 정보</h2>
+
+        <div class="form-control">
+          <%= f.label :account_info, "입금 계좌", class: "label" %>
+          <%= f.text_field :account_info, class: "input input-bordered font-mono", placeholder: "은행명 계좌번호 예금주" %>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">
+              예: 농협 123-456-789012 홍길동
+            </span>
+          </label>
+        </div>
+
+        <div class="alert alert-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="text-sm">
+            계좌 정보는 암호화되어 저장되며, 고객에게는 뒤 4자리만 표시됩니다.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <%= f.submit "저장", class: "btn btn-primary" %>
+      <%= link_to "취소", farmers_profile_path, class: "btn btn-ghost" %>
+    </div>
+  <% end %>
+</div>

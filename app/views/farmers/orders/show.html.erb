@@ -1,0 +1,161 @@
+<div class="page-container py-8 space-y-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-3xl font-bold">주문 상세</h1>
+      <p class="text-sm text-base-content/70">주문번호: <span class="font-mono"><%= @order.order_number %></span></p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <%= link_to "주문 목록", farmers_orders_path, class: "btn btn-ghost btn-sm" %>
+      <%= link_to "대시보드", farmers_dashboard_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <!-- 주문 상태 및 액션 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm text-base-content/70">주문 상태</p>
+              <div class="mt-2"><%= render BadgeComponent.new(status: @order.status) %></div>
+            </div>
+            <div class="text-sm text-base-content/70">
+              주문일시: <%= l(@order.created_at, format: :long) %>
+            </div>
+          </div>
+
+          <% if @order.may_confirm_order? || @order.may_cancel_order? %>
+            <div class="divider"></div>
+            <div class="flex flex-wrap gap-2">
+              <% if @order.may_confirm_order? %>
+                <%= button_to "승인", approve_farmers_order_path(@order), method: :post, class: "btn btn-success btn-sm", form: { data: { turbo_confirm: "주문을 승인하시겠습니까?" } } %>
+              <% end %>
+              <% if @order.may_cancel_order? %>
+                <button type="button" onclick="reject_modal.showModal()" class="btn btn-error btn-sm">거절</button>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- 주문 상품 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">주문 상품</h2>
+          <div class="space-y-3">
+            <% @order.order_items.each do |item| %>
+              <div class="flex items-center justify-between border-b border-base-200 pb-3 last:border-0 last:pb-0">
+                <div>
+                  <p class="font-medium"><%= item.product.name %></p>
+                  <p class="text-sm text-base-content/70">
+                    <%= number_to_currency(item.unit_price / 100.0, unit: "", precision: 0) %>원 × <%= item.quantity %>개
+                  </p>
+                </div>
+                <p class="font-bold text-primary">
+                  <%= number_to_currency(item.subtotal / 100.0, unit: "", precision: 0) %>원
+                </p>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="divider"></div>
+          <div class="flex justify-between text-lg font-bold">
+            <span>총 주문 금액</span>
+            <span><%= number_to_currency(@order.total_amount / 100.0, unit: "", precision: 0) %>원</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 배송지 정보 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">배송지 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div><span class="text-base-content/70">받는 분:</span> <%= @order.shipping_name %></div>
+            <div><span class="text-base-content/70">연락처:</span> <%= @order.shipping_phone %></div>
+            <% if @order.shipping_zip_code.present? %>
+              <div><span class="text-base-content/70">우편번호:</span> <%= @order.shipping_zip_code %></div>
+            <% end %>
+            <div><span class="text-base-content/70">주소:</span> <%= @order.shipping_address %></div>
+            <% if @order.delivery_memo.present? %>
+              <div class="mt-3 p-3 bg-base-200 rounded">
+                <span class="text-base-content/70">배송 메모:</span><br>
+                <%= @order.delivery_memo %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <!-- 고객 정보 -->
+      <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+          <h2 class="card-title">고객 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div><span class="text-base-content/70">이름:</span> <%= @order.user.name %></div>
+            <div><span class="text-base-content/70">이메일:</span> <%= @order.user.email %></div>
+            <div><span class="text-base-content/70">연락처:</span> <%= @order.user.phone || "-" %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 입금 정보 -->
+      <% if @order.payment %>
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title">입금 정보</h2>
+            <div class="space-y-2 text-sm">
+              <div><span class="text-base-content/70">상태:</span>
+                <span class="badge badge-sm <%= @order.payment.verified? ? 'badge-success' : 'badge-warning' %>">
+                  <%= @order.payment.verified? ? '확인 완료' : '확인 대기' %>
+                </span>
+              </div>
+              <% if @order.payment.verified_at %>
+                <div><span class="text-base-content/70">확인일시:</span> <%= l(@order.payment.verified_at, format: :short) %></div>
+              <% end %>
+              <% if @order.payment.admin_note.present? %>
+                <div class="mt-3 p-3 bg-base-200 rounded">
+                  <span class="text-base-content/70">관리자 메모:</span><br>
+                  <%= @order.payment.admin_note %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- 거절 사유 -->
+      <% if @order.cancelled? && @order.rejection_reason.present? %>
+        <div class="card bg-error/10 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-error">거절 사유</h2>
+            <p class="text-sm"><%= @order.rejection_reason %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 거절 모달 -->
+<dialog id="reject_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">주문 거절</h3>
+    <p class="py-4 text-sm">거절 사유를 입력해주세요 (선택사항)</p>
+
+    <%= form_with url: reject_farmers_order_path(@order), method: :post do |f| %>
+      <%= f.text_area :rejection_reason, placeholder: "예: 재고 부족, 배송 불가 지역 등", class: "textarea textarea-bordered w-full h-24" %>
+
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="reject_modal.close()">취소</button>
+        <%= f.submit "거절", class: "btn btn-error" %>
+      </div>
+    <% end %>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>닫기</button>
+  </form>
+</dialog>
