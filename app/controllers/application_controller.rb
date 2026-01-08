@@ -17,6 +17,11 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def after_sign_in_path_for(resource)
+    stored_location_for(resource) ||
+      (resource.farmer? ? farmers_dashboard_path : resource.admin_like? ? admin_dashboard_path : root_path)
+  end
+
   def require_admin_otp!
     return unless admin_otp_required?
 

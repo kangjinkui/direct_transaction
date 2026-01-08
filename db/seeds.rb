@@ -20,22 +20,28 @@ consumer = User.find_or_create_by!(email: "consumer@example.com") do |user|
 end
 
 puts "Seeding farmer users..."
-# 농가 로그인 계정 생성
-farmer_user_1 = User.find_or_create_by!(email: "farmer1@example.com") do |user|
-  user.name = "Green Farm"
-  user.password = "Password!1"
-  user.password_confirmation = "Password!1"
-  user.phone = "+821011112222"
-  user.role = :farmer
-end
+# Farmer login accounts
+farmer_user_1 = User.find_or_initialize_by(email: "farmer1@example.com")
+farmer_user_1.assign_attributes(
+  name: "Green Farm",
+  password: "Password!1",
+  password_confirmation: "Password!1",
+  phone: "+821011112222",
+  role: :farmer
+)
+farmer_user_1.save!
+farmer_user_1.create_farmer_profile_if_farmer if farmer_user_1.farmer_profile.nil?
 
-farmer_user_2 = User.find_or_create_by!(email: "farmer2@example.com") do |user|
-  user.name = "Sunny Orchard"
-  user.password = "Password!1"
-  user.password_confirmation = "Password!1"
-  user.phone = "+821033344455"
-  user.role = :farmer
-end
+farmer_user_2 = User.find_or_initialize_by(email: "farmer2@example.com")
+farmer_user_2.assign_attributes(
+  name: "Sunny Orchard",
+  password: "Password!1",
+  password_confirmation: "Password!1",
+  phone: "+821033344455",
+  role: :farmer
+)
+farmer_user_2.save!
+farmer_user_2.create_farmer_profile_if_farmer if farmer_user_2.farmer_profile.nil?
 
 puts "Updating farmer profiles..."
 # 농가 프로필 업데이트 (User 모델의 after_create로 자동 생성됨)

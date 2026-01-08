@@ -3,6 +3,9 @@
 <% if user_signed_in? %>
   <li><%= link_to "장바구니", cart_path %></li>
   <li><%= link_to "내 주문", orders_path %></li>
+  <% if current_user.farmer? %>
+    <li><%= link_to "Farmer", farmers_dashboard_path %></li>
+  <% end %>
   <% if current_user.admin? %>
     <li><%= link_to "관리자", admin_dashboard_path %></li>
   <% end %>
